@@ -196,8 +196,16 @@ export interface SeriesDetails extends Details {
   episodes: Record<number, Episode[]>
 }
 
-export const episodeUrl = (login: XtreamLogin, id: string, ext: string): string =>
-  `${normalizeServer(login.server)}/series/${encodeURIComponent(login.username.trim())}/${encodeURIComponent(login.password.trim())}/${id}.${ext}`
+// Some portals already hand out the episode id with its extension ("123.mkv"). Adding the container extension on top
+// would give "123.mkv.mp4", an address the portal does not know, and the episode would not play.
+const HAS_EXTENSION = /\.(?:mkv|mp4|m4v|avi|mov|wmv|flv|webm|mpe?g|ts|m2ts|3gp|ogv)$/i
+
+export function episodeUrl(login: XtreamLogin, id: string, ext: string): string {
+  const cleanId = id.trim()
+  const cleanExt = ext.trim().replace(/^\.+/, '') || 'mp4'
+  const file = HAS_EXTENSION.test(cleanId) ? cleanId : `${cleanId}.${cleanExt}`
+  return `${normalizeServer(login.server)}/series/${encodeURIComponent(login.username.trim())}/${encodeURIComponent(login.password.trim())}/${encodeURIComponent(file)}`
+}
 
 export function getSeriesInfo(login: XtreamLogin, playlistId: string, seriesId: string): Promise<SeriesDetails> {
   return cached(`${playlistId}:series:${seriesId}`, DAY, async () => {

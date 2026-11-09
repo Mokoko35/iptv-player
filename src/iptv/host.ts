@@ -183,7 +183,13 @@ const emit = () => listeners.forEach((l) => l())
 
 function set(next: HostState): void {
   if (next !== current) {
+    const wasFull = current.fullscreen
     current = next
+    // Full screen hides the rest of the page (see index.css), so mark the document while it lasts.
+    if (IS_HOST && wasFull !== next.fullscreen) {
+      if (next.fullscreen) document.documentElement.dataset.fullscreen = 'true'
+      else delete document.documentElement.dataset.fullscreen
+    }
     emit()
   }
 }

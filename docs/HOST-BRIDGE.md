@@ -180,7 +180,7 @@ void SendTracks() => Post(new
   `WebView2CompositionControl` for the page and give LibVLC a WPF-drawn surface (video callbacks into a
   `WriteableBitmap`/D3D image), or put the transparent WebView in a layered overlay window above the video window.
   This repository does not decide that for you.
-- **Full screen.** The page asks for it with `{ cmd: 'fullscreen' }`; it does not use the browser's Fullscreen API in the
+- **Full screen.** While it is on (the page asked for it, or C# sent `{ evt: 'fullscreen', on: true }`), the page sets `data-fullscreen` on `<html>` and hides the menu, header and every other panel; only the player and its controls stay, and the video area covers the whole page. The page asks for it with `{ cmd: 'fullscreen' }`; it does not use the browser's Fullscreen API in the
   C# app (that API would paint an opaque black backdrop).
 - **Right-click in full screen** means "back" for films, so keep `AreDefaultContextMenusEnabled = false`.
 - **Autoplay.** LibVLC plays without a user gesture, so nothing to configure.

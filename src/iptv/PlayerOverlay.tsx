@@ -112,7 +112,11 @@ export function PlayerOverlay() {
   // The container loses its background and rounding; the position is absolute inside a full-page layer, because a
   // transformed parent would trap the full screen player (it is position: fixed).
   const positioned = IS_HOST ? 'absolute' : 'fixed'
-  const containerClass = inline
+  // In full screen nothing but the picture and its controls may remain: no border, no title panel, no dark backdrop.
+  const bare = IS_HOST && isFull
+  const containerClass = bare
+    ? 'pointer-events-auto absolute inset-0'
+    : inline
     ? IS_HOST
       ? 'pointer-events-auto absolute overflow-hidden border border-white/10'
       : 'fixed z-20 overflow-hidden rounded-2xl border border-white/10 bg-black shadow-xl'
@@ -134,7 +138,7 @@ export function PlayerOverlay() {
     >
       {player}
 
-      {modal && (
+      {modal && !bare && (
         <div className={`p-5 sm:p-6 ${IS_HOST ? 'rounded-b-3xl bg-elev' : ''}`}>
           <NowPlayingInfo channel={current} windowed />
         </div>
@@ -167,8 +171,8 @@ export function PlayerOverlay() {
   }
   const layer = isFull ? 'z-[90]' : modal ? 'z-50' : inline ? 'z-20' : 'z-40'
   return (
-    <div className={`pointer-events-none fixed inset-0 ${layer}`}>
-      {modal && <HoleBackdrop onClick={minimizePlayer} />}
+    <div data-player-layer className={`pointer-events-none fixed inset-0 ${layer}`}>
+      {modal && !bare && <HoleBackdrop onClick={minimizePlayer} />}
       {container}
     </div>
   )

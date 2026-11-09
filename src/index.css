@@ -370,3 +370,9 @@ html[data-host] #root {
 html[data-host] .theme-media {
   background: transparent;
 }
+
+/* Full screen in the C# app: only the player stays. Everything else in the app is hidden (visibility keeps the layout, so
+   the player's place in the page is not lost and the video comes back to it when full screen ends). */
+html[data-fullscreen] .theme-media > :not([data-player-layer]) {
+  visibility: hidden;
+}

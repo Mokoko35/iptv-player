@@ -377,16 +377,22 @@ html[data-host] .theme-media {
 }
 
 /* C# app: the video is drawn behind the page, so no page pixel may cover it.
-   - Player window open: the page is hidden (the dark layer and the video stay).
-   - Full screen: the page is hidden as well.
-   - Small player docked: the page stays; a hole is cut where the video is (done in PlayerOverlay, with clip-path).
-   visibility keeps the layout, so the page is exactly as it was when the player closes. */
+   - Player window open, or full screen: the page is hidden (visibility keeps the layout, so the page is exactly as it was
+     when the player closes).
+   - Small player docked: the page keeps working and simply does not use the strip on the right, where the small player
+     sits. Nothing overlaps, so there is nothing to clip and no extra drawing work. On a very narrow window there is no room
+     for a strip, and the page is hidden like in the player window. */
 html[data-player-mode='modal'] #root,
 html[data-fullscreen] #root {
   visibility: hidden;
 }
-
-/* The mouse is over the small player: the page behind it gets no mouse at all (set in PlayerOverlay, by pointer position). */
-html[data-pip-hover] #root {
-  pointer-events: none;
+@media (min-width: 640px) {
+  html[data-player-mode='mini'] #root {
+    padding-right: 22.5rem;
+  }
+}
+@media (max-width: 639px) {
+  html[data-player-mode='mini'] #root {
+    visibility: hidden;
+  }
 }

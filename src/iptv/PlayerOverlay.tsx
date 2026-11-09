@@ -79,9 +79,8 @@ export function PlayerOverlay() {
   }, [modal, minimizePlayer])
 
   // In the C# app the picture is drawn behind the page, so no page pixel may sit on top of it. The page is told what the
-  // player is doing (see index.css): while the player window is open the page is hidden; while the small player is docked
-  // the page stays, with a hole cut where the video is.
-  const videoRect = useVideoRect()
+  // player is doing and index.css does the rest: the page is hidden while the player window is open, and it leaves a free
+  // strip on the right while the small player is docked. Nothing here draws, clips or catches the mouse for the page.
   useEffect(() => {
     if (!IS_HOST) return
     document.documentElement.dataset.playerMode = mode
@@ -89,65 +88,6 @@ export function PlayerOverlay() {
       delete document.documentElement.dataset.playerMode
     }
   }, [mode])
-  useEffect(() => {
-    const page = document.getElementById('root')
-    if (!IS_HOST || !page) return
-    if (mode !== 'mini' || !videoRect) {
-      page.style.clipPath = ''
-      return
-    }
-    let last = ''
-    const cut = () => {
-      const p = page.getBoundingClientRect() // the page scrolls, the video does not
-      const x = Math.round(videoRect.x - p.left)
-      const y = Math.round(videoRect.y - p.top)
-      const right = Math.round(x + videoRect.width)
-      const bottom = Math.round(y + videoRect.height)
-      const next = `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${x}px ${y}px, ${right}px ${y}px, ${right}px ${bottom}px, ${x}px ${bottom}px, ${x}px ${y}px)`
-      if (next !== last) page.style.clipPath = last = next // only when it really changed: a repaint of the whole page is not cheap
-    }
-    cut()
-    window.addEventListener('scroll', cut, true)
-    window.addEventListener('resize', cut)
-    return () => {
-      window.removeEventListener('scroll', cut, true)
-      window.removeEventListener('resize', cut)
-      page.style.clipPath = ''
-    }
-  }, [mode, videoRect])
-
-  // The mouse over the small player belongs to the small player. Decided by position, not by which element got the event:
-  // while the pointer is inside the small player (plus a few pixels), the page ignores the mouse completely (index.css), so no
-  // card behind it can be hovered, whatever the host does with the mouse events. Outside it the page works as usual.
-  useEffect(() => {
-    if (!IS_HOST || mode !== 'mini' || !videoRect) return
-    const root = document.documentElement
-    const margin = 6
-    let lastLog = 0
-    const onMove = (e: Event) => {
-      const p = e as MouseEvent
-      const inside =
-        p.clientX >= videoRect.x - margin &&
-        p.clientX <= videoRect.x + videoRect.width + margin &&
-        p.clientY >= videoRect.y - margin &&
-        p.clientY <= videoRect.y + videoRect.height + margin
-      if (inside) root.dataset.pipHover = 'true'
-      else delete root.dataset.pipHover
-      if (localStorage.getItem('iptv-player:debug-osd') === '1' && Date.now() - lastLog > 1000) {
-        lastLog = Date.now()
-        console.log('[pip]', e.type, { x: p.clientX, y: p.clientY, inside, rect: videoRect, hit: document.elementFromPoint(p.clientX, p.clientY)?.className })
-      }
-    }
-    const names = ['mousemove', 'pointermove', 'mouseover'] as const
-    for (const name of names) document.addEventListener(name, onMove, true)
-    const clear = () => delete root.dataset.pipHover // the pointer left the window
-    root.addEventListener('mouseleave', clear)
-    return () => {
-      for (const name of names) document.removeEventListener(name, onMove, true)
-      root.removeEventListener('mouseleave', clear)
-      delete root.dataset.pipHover
-    }
-  }, [mode, videoRect])
 
   if (!current || mode === 'closed') return null
 

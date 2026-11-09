@@ -186,6 +186,12 @@ void SendTracks() => Post(new
   docked, the page stays and a hole is cut in it at the video rectangle (`clip-path` on `#root`); in the Live TV preview
   box the page is already transparent there. When the player closes, the page is exactly as it was. The player itself is
   drawn in `#player-root`, outside `#root`, so hiding the page never hides the player.
+- **Mouse over the small player.** The small player is outside the page root and above it, so the browser engine already
+  sends the mouse to it. On top of that, the page watches the pointer position: while it is inside the small player (plus 6
+  px), `html[data-pip-hover]` is set and the page gets no mouse events at all, so nothing behind can be hovered. If cards
+  still react behind the small player, the mouse positions that reach WebView2 do not match what is on screen (usually
+  DPI scaling or an offset in the code that forwards the mouse to WebView2); `localStorage.setItem('iptv-player:debug-osd',
+  '1')` makes the console print the pointer, the video rectangle and the element under the pointer (`[pip]`).
 - **Full screen.** While it is on (the page asked for it, or C# sent `{ evt: 'fullscreen', on: true }`), the page sets `data-fullscreen` on `<html>` and hides the menu, header and every other panel; only the player and its controls stay, and the video area covers the whole page. The page asks for it with `{ cmd: 'fullscreen' }`; it does not use the browser's Fullscreen API in the
   C# app (that API would paint an opaque black backdrop).
 - **Right-click in full screen** means "back" for films, so keep `AreDefaultContextMenusEnabled = false`.

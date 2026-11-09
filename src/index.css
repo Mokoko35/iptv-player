@@ -385,3 +385,8 @@ html[data-player-mode='modal'] #root,
 html[data-fullscreen] #root {
   visibility: hidden;
 }
+
+/* The mouse is over the small player: the page behind it gets no mouse at all (set in PlayerOverlay, by pointer position). */
+html[data-pip-hover] #root {
+  pointer-events: none;
+}

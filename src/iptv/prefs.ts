@@ -1,4 +1,3 @@
-import type { TranscodeMode } from './desktop'
 import type { Kind } from './kinds'
 import { DEFAULT_THEME, THEMES, type ThemeId } from './themes'
 
@@ -16,8 +15,6 @@ export interface Prefs {
   showLogos: boolean
   cardSize: CardSize
   autoplay: boolean
-  /** Windows app: convert films with ffmpeg so every audio language and subtitle shows up. */
-  transcode: TranscodeMode
   bufferSeconds: 10 | 30 | 60
   hardwareDecoding: boolean
   epgUrl: string
@@ -34,7 +31,6 @@ export const DEFAULT_PREFS: Prefs = {
   showLogos: true,
   cardSize: 'md',
   autoplay: true,
-  transcode: 'auto',
   bufferSeconds: 30,
   hardwareDecoding: true,
   epgUrl: '',
@@ -60,7 +56,6 @@ export function loadPrefs(): Prefs {
       sidebarCollapsed: typeof raw.sidebarCollapsed === 'boolean' ? raw.sidebarCollapsed : d.sidebarCollapsed,
       showLogos: typeof raw.showLogos === 'boolean' ? raw.showLogos : d.showLogos,
       cardSize: raw.cardSize === 'sm' || raw.cardSize === 'md' || raw.cardSize === 'lg' ? raw.cardSize : d.cardSize,
-      transcode: raw.transcode === 'auto' || raw.transcode === 'always' || raw.transcode === 'off' ? raw.transcode : d.transcode,
       autoplay: typeof raw.autoplay === 'boolean' ? raw.autoplay : d.autoplay,
       bufferSeconds: raw.bufferSeconds === 10 || raw.bufferSeconds === 30 || raw.bufferSeconds === 60 ? raw.bufferSeconds : d.bufferSeconds,
       hardwareDecoding: typeof raw.hardwareDecoding === 'boolean' ? raw.hardwareDecoding : d.hardwareDecoding,

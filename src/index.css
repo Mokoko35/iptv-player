@@ -359,3 +359,14 @@ video::cue {
   height: 100vh;
   border-radius: 0;
 }
+
+/* Inside the C# app the video is drawn by LibVLC BEHIND the page (host.ts sets data-host), so the page is see-through.
+   Panels that have their own background (menus, cards, dialogs) stay solid; only the page itself is cleared. */
+html[data-host],
+html[data-host] body,
+html[data-host] #root {
+  background: transparent !important;
+}
+html[data-host] .theme-media {
+  background: transparent;
+}

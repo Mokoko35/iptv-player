@@ -1,6 +1,6 @@
 # IPTV Player
 
-A media-center style IPTV player for Windows and the browser. Add your own playlists from an M3U address, an Xtream-style portal login, a file or pasted text, then browse live TV, movies and series in a clean dark interface. The app provides no channels or content; it only plays lists you add.
+A media-center style IPTV player interface. It runs inside a C# (WPF) app with WebView2, where LibVLC plays the video behind the transparent page, and it also runs in a normal browser with its own HTML5 player. Add your own playlists from an M3U address, an Xtream-style portal login, a file or pasted text, then browse live TV, movies and series in a clean dark interface. The app provides no channels or content; it only plays lists you add.
 
 Built with [Arc Studio](https://studio.arc.io)
 
@@ -17,8 +17,7 @@ Built with [Arc Studio](https://studio.arc.io)
 - **Live TV player:** previous and next channel buttons (also the left and right arrow keys, walking through the list you picked the channel from), the channel logo and name over the video, a program timeline under it (now with a progress bar, plus the next three), and sleek controls that hide after 3 seconds without activity. Space pauses, M mutes, F toggles full screen.
 - **Clean titles and categories:** titles that carry list attributes (`Title" tvg-logo="..." group-title="TR ▸ Vizyon",...`) are repaired, the category is taken from `group-title`, and arrows such as `▸` and `▹` are treated as one, so films and series are no longer left under "Kategorisiz". Lists saved earlier are repaired when they open.
 - **TMDB details (optional):** add a free TMDB key in Settings and film and series pages show the right poster, summary, cast and rating, looked up with the cleaned title and year.
-- **Audio and subtitles:** films and episodes have a language button next to the full screen button. Its menu lists the audio languages and the subtitles, and lets you add a subtitle file (.srt or .vtt) from your computer. Tracks come from the HLS playlist, from the video file when the engine exposes them, and from subtitle files the portal lists.
-- **Windows app: films are converted on the fly.** Playing an .mkv (or .avi and similar; or every film, in Settings > Playback) starts ffmpeg, which rewrites the film as HLS: the picture is copied (or re-encoded when it is not plain H.264), every audio language becomes its own AAC track, and every text subtitle track is written as WebVTT. The language menu then lists them all. Closing the player stops ffmpeg and deletes its temporary files. Picture-based subtitles (PGS, DVD) cannot be shown. ffmpeg is installed with `npm install` (the `ffmpeg-static` package downloads it, about 70 MB); it is a GPL build, see https://ffmpeg.org/legal.html if you redistribute the app. In a normal browser the file plays as it is.
+- **Audio and subtitles:** films and episodes have a language button next to the full screen button. Its menu lists the audio languages and the subtitles, and lets you add a subtitle file (.srt or .vtt). In the C# app the tracks come from LibVLC; in a browser, from the HLS playlist, the video file when the engine exposes them, and subtitle files the portal lists.
 - **Full screen for films and episodes:** pressing Play on a film or an episode opens it full screen. In full screen, the X button and a right-click both mean "back": they leave full screen and close the film.
 - **Adult content filter:** categories and channels tagged XXX, Adult, +18 and similar are hidden by default. Turning the filter off or on, and changing the PIN, asks for a 4-digit PIN that you set (stored on the device as a salted hash).
 - **Country filter:** a dropdown at the top of the category list (and above the category chips on a phone). Pick a country to show its categories in Live TV, Movies and Series. Categories whose country is not recognized are listed under "Diğer" and stay visible. The category list follows the picked country (only its categories and "Diğer"); choosing all countries brings everything back. Category management always shows every category, so hiding and the country filter never interfere with each other. The country is read from the start of the category name (`TR |`, `TR:`, `[TR]`, `(TR)`, `TR -`, `TR ▸`) or from names such as `TR: TRT 1`.
@@ -32,20 +31,13 @@ Built with [Arc Studio](https://studio.arc.io)
 - **Playback** of HLS (`.m3u8`) and MPEG-TS (`.ts`) streams, plus common video files.
 - **Private by design:** lists, favorites and settings stay on your device.
 
-## Windows desktop app
+## Inside the C# app (WebView2 + LibVLC)
 
-A browser cannot read most IPTV servers (they do not allow it) and blocks `http://` streams on `https://` pages. The desktop app has neither limit, so use it for the best results.
+The UI is built to be hosted by a C# WPF app. The page talks to C# with `window.chrome.webview.postMessage` (for example `{ cmd: 'play', url: '...' }` when a channel is chosen) and listens for the answers (time, tracks, errors). The page background is transparent so the video behind it shows through, and full screen is done by the C# window.
 
-Prerequisites: Windows and [Node.js](https://nodejs.org) 20 or newer.
-
-```
-npm install
-npm run desktop:build
-```
-
-The installer is written to the `release/` folder (an `IPTV Player Setup ... .exe`). To try the desktop app without building an installer, run `npm run dev` in one terminal and `npm run desktop:dev` in another.
-
-The desktop build has not been tested on Windows by Arc Studio.
+- `iptv-ui-build.zip` is a ready build of the UI. Unzip it and map the folder to a host name with WebView2.
+- `docs/HOST-BRIDGE.md` lists every message in both directions and has a reference sketch of the C# side.
+- Without `window.chrome.webview` (a normal browser), the page uses its own HTML5 player, so you can work on the UI with `npm run dev`.
 
 ## Development
 
@@ -60,8 +52,7 @@ Open the address Vite prints. Other scripts:
 
 - `npm run build`: production build into `dist/`
 - `npm run check`: lint and type check
-- `npm run desktop:dev`: desktop app against the dev server
-- `npm run desktop:build`: Windows installer
+- `iptv-ui-build.zip` is made from `dist/` after a build
 
 With Bun, use `bun install` and `bun run ...` instead.
 
@@ -71,7 +62,7 @@ None.
 
 ## Notes
 
-- Flag emoji do not draw on Windows by themselves, so the app bundles a small flags-only font (Twemoji Country Flags, a subset of Twemoji by Twitter, CC-BY 4.0, packaged by country-flag-emoji-polyfill, MIT).
+- Flag emoji do not draw on Windows by themselves, so the UI bundles a small flags-only font (Twemoji Country Flags, a subset of Twemoji by Twitter, CC-BY 4.0, packaged by country-flag-emoji-polyfill, MIT).
 
 - The program guide is matched to channels by the list's `tvg-id`, or by channel name when there is none. Lists added before this feature have no `tvg-id` saved, so update them once. Large guides can take a few minutes to download; only the programmes around the current time are kept on the device.
 - Movie and series details need a list added as a portal login or as a `get.php` address. Plain M3U lists play straight from the grid.

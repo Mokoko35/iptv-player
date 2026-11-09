@@ -1,11 +1,15 @@
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Loader2, Maximize, Minimize, Pause, Play, SkipBack, SkipForward, Tv, Volume2, VolumeX } from 'lucide-react'
-import { type SubtitleJob, type TranscodeMode, desktop, shouldTranscode } from './desktop'
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { AlertTriangle, Loader2, Tv } from 'lucide-react'
 import { LanguageMenu } from './LanguageMenu'
+import { PlayerChrome } from './PlayerChrome'
+import { HostPlayer } from './HostPlayer'
+import { IS_HOST } from './host'
+import { loadVolume, saveVolume } from './volume'
 import { EMPTY_TRACKS, type TrackInfo, labelFor, loadSubtitle, subtitleFromFile } from './tracks'
 import type { Channel, SubtitleSource } from './types'
 
 type Engine = 'hls' | 'ts' | 'native'
+const NO_SOURCES: SubtitleSource[] = []
 type HlsInstance = import('hls.js').default
 
 /* Audio languages and subtitles: from the HLS playlist when there is one, otherwise from the video element itself. */
@@ -66,25 +70,6 @@ function engineFor(url: string): Engine {
 const mixedContent = (url: string) => window.location.protocol === 'https:' && url.startsWith('http://')
 
 const HIDE_AFTER_MS = 3000
-const VOLUME_KEY = 'iptv-player:volume:v1'
-
-function loadVolume(): { volume: number; muted: boolean } {
-  try {
-    const raw = JSON.parse(localStorage.getItem(VOLUME_KEY) ?? 'null') as { volume?: unknown; muted?: unknown } | null
-    const volume = typeof raw?.volume === 'number' && raw.volume >= 0 && raw.volume <= 1 ? raw.volume : 1
-    return { volume, muted: raw?.muted === true }
-  } catch {
-    return { volume: 1, muted: false }
-  }
-}
-
-const clockTime = (seconds: number): string => {
-  if (!Number.isFinite(seconds) || seconds < 0) return '0:00'
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = Math.floor(seconds % 60)
-  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`
-}
 
 interface CoreProps {
   channel: Channel
@@ -105,41 +90,18 @@ interface CoreProps {
   onBack?: () => void
   /** Show the audio language and subtitle menus (films and episodes). */
   trackMenus?: boolean
-  /** Windows app: convert films with ffmpeg first (see desktop.ts). */
-  transcode?: TranscodeMode
 }
 
-function ControlButton({ label, onClick, children, className = '' }: { label: string; onClick: () => void; children: ReactNode; className?: string }) {
-  return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
-      aria-label={label}
-      title={label}
-      className={`grid h-11 w-11 shrink-0 place-items-center rounded-full text-white/90 transition hover:bg-white/15 hover:text-white ${className}`}
-    >
-      {children}
-    </button>
-  )
-}
-
-function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false, transcode = 'auto' }: CoreProps) {
+function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false }: CoreProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<number | undefined>(undefined)
   // Status belongs to one stream address. A new channel starts as "loading" without remounting the player,
   // which is what keeps full screen alive when you change channels.
-  const [status, setStatus] = useState<{ url: string; loading: boolean; error: string | null; note?: string } | null>(null)
+  const [status, setStatus] = useState<{ url: string; loading: boolean; error: string | null } | null>(null)
   const own = status?.url === channel.url ? status : null
   const loading = own ? own.loading : true
   const error = own ? own.error : null
-  const note = own?.note
-  // A film converted by ffmpeg: its real length (the growing playlist does not know it yet) and its subtitle files.
-  const [converted, setConverted] = useState<{ url: string; duration: number; subs: SubtitleSource[]; job: SubtitleJob; skipped: number } | null>(null)
-  const conv = converted?.url === channel.url ? converted : null
   const [paused, setPaused] = useState(true)
   const [{ volume, muted }, setSound] = useState(loadVolume)
   const [time, setTime] = useState(0)
@@ -151,7 +113,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
   const [tracks, setTracks] = useState<TrackInfo>(EMPTY_TRACKS)
   const [menuOpen, setMenuOpen] = useState(false)
   const blocked = mixedContent(channel.url)
-  const total = conv && conv.duration > 0 ? conv.duration : duration
+  const total = duration
   const isVod = Number.isFinite(total) && total > 0
 
   // Controls appear on any activity and go away after three seconds of none.
@@ -177,12 +139,12 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
     video.muted = muted
 
     const url = channel.url
-    const patch = (p: { loading?: boolean; error?: string | null; note?: string }) =>
+    const patch = (p: { loading?: boolean; error?: string | null }) =>
       setStatus((prev) => ({ ...(prev?.url === url ? prev : { url, loading: true, error: null }), ...p }))
     const fail = (message: string) => {
       if (!disposed) patch({ error: message, loading: false })
     }
-    const onPlaying = () => patch({ loading: false, error: null, note: undefined })
+    const onPlaying = () => patch({ loading: false, error: null })
     const onWaiting = () => patch({ loading: true })
     // Emptying the element when a channel is swapped can raise an error with no cause; only a real one counts.
     const onNativeError = () => {
@@ -214,53 +176,15 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
       video.textTracks.addEventListener(type, refreshTracks)
     }
 
-    let stopConversion: (() => void) | undefined
-    let subsTimer: number | undefined
-
     const start = async () => {
-      let source = channel.url
-      let engine = engineFor(channel.url)
-      let converting = false
-      // Windows app: ffmpeg rewrites the film as HLS with every audio language, so hls.js can list and switch them.
-      const desk = desktop()
-      if (desk && shouldTranscode(channel.url, transcode)) {
-        patch({ loading: true, note: 'Film hazırlanıyor: ses ve altyazı izleri okunuyor...' })
-        try {
-          const job = await desk.transcodeStart(channel.url)
-          if (disposed) {
-            void desk.transcodeStop(job.id)
-            return
-          }
-          stopConversion = () => void desk.transcodeStop(job.id).catch(() => undefined)
-          source = job.playlist
-          engine = 'hls'
-          converting = true
-          setConverted({ url, duration: job.durationSeconds, subs: job.subtitles, job: job.subtitles.length > 0 ? 'pending' : 'none', skipped: job.skippedSubtitles })
-          if (job.subtitles.length > 0) {
-            // The subtitle files are written by a second, faster ffmpeg. Wait for them to be complete.
-            subsTimer = window.setInterval(() => {
-              void desk
-                .transcodeStatus(job.id)
-                .then((s) => {
-                  if (s.subtitles === 'pending') return
-                  window.clearInterval(subsTimer)
-                  setConverted((prev) => (prev?.url === url ? { ...prev, job: s.subtitles } : prev))
-                })
-                .catch(() => undefined)
-            }, 2000)
-          }
-        } catch {
-          // No ffmpeg, a slow server, or a file ffmpeg cannot read: play the file as it is.
-          patch({ loading: true, note: 'Dönüştürme başlatılamadı, dosya olduğu gibi oynatılıyor.' })
-        }
-      }
+      const source = channel.url
+      const engine = engineFor(channel.url)
       try {
         if (engine === 'hls') {
           const { default: Hls } = await import('hls.js')
           if (disposed) return
           if (Hls.isSupported()) {
-            // A converted film grows while it plays; start at the beginning, not at the "live edge".
-            const hls = new Hls({ enableWorker: true, ...(converting ? { startPosition: 0 } : {}) })
+            const hls = new Hls({ enableWorker: true })
             let retried = false
             hls.on(Hls.Events.ERROR, (_e, data) => {
               if (!data.fatal) return
@@ -323,15 +247,13 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
         audioList?.removeEventListener(type, refreshTracks)
         video.textTracks.removeEventListener(type, refreshTracks)
       }
-      window.clearInterval(subsTimer)
-      stopConversion?.() // closing the player ends ffmpeg and deletes its files
       teardown?.()
       video.removeAttribute('src')
       video.load()
     }
     // volume and muted are applied once here; later changes go straight to the element.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel.url, blocked, autoplay, transcode])
+  }, [channel.url, blocked, autoplay])
 
   // Subtitle files added by hand or listed by the portal live as <track> elements. They go away with the channel.
   useEffect(
@@ -358,8 +280,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
     return el
   }
 
-  // Subtitle files from the portal and, in the Windows app, the ones ffmpeg wrote for a converted film (once they are complete).
-  const subtitleSources = useMemo(() => [...(channel.subtitleTracks ?? []), ...(conv?.job === 'ready' ? conv.subs : [])], [channel.subtitleTracks, conv])
+  const subtitleSources = channel.subtitleTracks ?? NO_SOURCES
   const loadedSubs = useRef(new Set<string>())
 
   // The portal lists subtitle files: download them, turn SRT into WebVTT, and offer them (all off to start with).
@@ -452,11 +373,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
       video.muted = nextMuted
     }
     setSound({ volume: next, muted: nextMuted })
-    try {
-      localStorage.setItem(VOLUME_KEY, JSON.stringify({ volume: next, muted: nextMuted }))
-    } catch {
-      // ignore
-    }
+    saveVolume(next, nextMuted)
   }
   const toggleMute = useCallback(() => setVolume(volume === 0 ? 1 : volume, !muted), [volume, muted]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -538,11 +455,8 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
   }, [compact, onPrev, onNext, togglePlay, toggleMute, toggleFullscreen, wake, seek, isVod])
 
   const message = blocked
-    ? 'Bu yayın http:// ile başlıyor. https sayfalarda tarayıcı bunu engeller. Windows masaüstü uygulamasında veya http:// ile açılan sayfada oynar.'
+    ? 'Bu yayın http:// ile başlıyor. https sayfalarda tarayıcı bunu engeller. C# uygulamasında veya http:// ile açılan sayfada oynar.'
     : error
-  const subtitleNote = conv
-    ? [conv.job === 'pending' ? 'Altyazılar hazırlanıyor, birazdan burada görünecek...' : conv.job === 'failed' ? 'Altyazılar okunamadı.' : '', conv.skipped > 0 ? `${conv.skipped} altyazı görüntü tabanlı olduğu için gösterilemiyor.` : ''].filter(Boolean).join(' ') || undefined
-    : undefined
   const show = !compact && (awake || paused || message !== null || menuOpen)
   const hideCursor = !compact && !show && !paused
 
@@ -570,85 +484,32 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
 
       {loading && !message && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
-          <div className="flex flex-col items-center gap-3 px-6 text-center">
-            <Loader2 className="animate-spin text-white/70" size={36} aria-label="Yükleniyor" />
-            {note && <p className="max-w-xs text-pretty text-sm text-white/80 drop-shadow">{note}</p>}
-          </div>
+          <Loader2 className="animate-spin text-white/70" size={36} aria-label="Yükleniyor" />
         </div>
       )}
 
       {!compact && (
-        <>
-          {/* Top: the channel's logo and name, plus the window buttons. */}
-          <div className={`absolute inset-x-0 top-0 flex items-start justify-between gap-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent p-3 pb-10 transition-opacity duration-300 sm:p-4 sm:pb-12 ${show ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="min-w-0">
-                <p className="truncate text-base font-semibold text-white drop-shadow sm:text-lg">{channel.name}</p>
-                {channel.subtitle && <p className="truncate text-sm text-white/75">{channel.subtitle}</p>}
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-1">{topRight}</div>
-          </div>
-
-          {/* Bottom: the controls. */}
-          <div className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-3 pb-2 pt-12 transition-opacity duration-300 sm:px-4 sm:pb-3 ${show ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
-            {isVod && (
-              <input
-                type="range"
-                min={0}
-                max={Math.floor(total)}
-                value={Math.floor(time)}
-                onChange={(e) => seek(Number(e.target.value))}
-                aria-label="Konum"
-                className="mb-1 h-1.5 w-full cursor-pointer accent-accent"
-              />
-            )}
-            <div className="flex items-center gap-0.5 sm:gap-1">
-              {onPrev && (
-                <ControlButton label="Önceki kanal (←)" onClick={onPrev}>
-                  <SkipBack size={20} fill="currentColor" aria-hidden="true" />
-                </ControlButton>
-              )}
-              <ControlButton label={paused ? 'Oynat (boşluk)' : 'Duraklat (boşluk)'} onClick={togglePlay}>
-                {paused ? <Play size={22} fill="currentColor" aria-hidden="true" /> : <Pause size={22} fill="currentColor" aria-hidden="true" />}
-              </ControlButton>
-              {onNext && (
-                <ControlButton label="Sonraki kanal (→)" onClick={onNext}>
-                  <SkipForward size={20} fill="currentColor" aria-hidden="true" />
-                </ControlButton>
-              )}
-              <ControlButton label={muted || volume === 0 ? 'Sesi aç (M)' : 'Sesi kapat (M)'} onClick={toggleMute}>
-                {muted || volume === 0 ? <VolumeX size={20} aria-hidden="true" /> : <Volume2 size={20} aria-hidden="true" />}
-              </ControlButton>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={muted ? 0 : volume}
-                onChange={(e) => setVolume(Number(e.target.value))}
-                aria-label="Ses düzeyi"
-                className="hidden h-1.5 w-24 cursor-pointer accent-accent sm:block"
-              />
-              <div className="min-w-0 flex-1 px-2 text-right text-sm tabular-nums text-white/80">
-                {isVod ? (
-                  `${clockTime(time)} / ${clockTime(total)}`
-                ) : (
-                  <span className="inline-flex items-center gap-2">
-                    {navLabel && <span className="hidden text-white/65 sm:inline">{navLabel}</span>}
-                    <span className="inline-flex items-center gap-1.5 rounded-md bg-danger/90 px-2 py-0.5 text-xs font-bold tracking-wider text-white">
-                      <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-white" /> CANLI
-                    </span>
-                  </span>
-                )}
-              </div>
-              {trackMenus && <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} subtitleNote={subtitleNote} />}
-              <ControlButton label={fullscreen ? 'Tam ekrandan çık (F)' : 'Tam ekran (F)'} onClick={toggleFullscreen}>
-                {fullscreen ? <Minimize size={20} aria-hidden="true" /> : <Maximize size={20} aria-hidden="true" />}
-              </ControlButton>
-            </div>
-          </div>
-        </>
+        <PlayerChrome
+          show={show}
+          channel={channel}
+          topRight={topRight}
+          paused={paused}
+          isVod={isVod}
+          time={time}
+          total={total}
+          volume={volume}
+          muted={muted}
+          fullscreen={fullscreen}
+          navLabel={navLabel}
+          onPrev={onPrev}
+          onNext={onNext}
+          onTogglePlay={togglePlay}
+          onSeek={seek}
+          onVolume={(v) => setVolume(v)}
+          onToggleMute={toggleMute}
+          onToggleFullscreen={toggleFullscreen}
+          languageMenu={trackMenus ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
+        />
       )}
 
       {message && (
@@ -676,10 +537,9 @@ interface PlayerProps {
   onFullscreenHandled?: () => void
   onBack?: () => void
   trackMenus?: boolean
-  transcode?: TranscodeMode
 }
 
-export function Player({ channel, autoplay = true, className = 'rounded-2xl border border-white/10', compact = false, onPrev, onNext, navLabel, topRight, wantFullscreen, onFullscreenHandled, onBack, trackMenus, transcode }: PlayerProps) {
+export function Player({ channel, autoplay = true, className = 'rounded-2xl border border-white/10', compact = false, onPrev, onNext, navLabel, topRight, wantFullscreen, onFullscreenHandled, onBack, trackMenus }: PlayerProps) {
   if (!channel) {
     return (
       <div className="grid aspect-video w-full place-items-center rounded-2xl border border-dashed border-white/15 bg-black/40 p-6 text-center">
@@ -690,6 +550,10 @@ export function Player({ channel, autoplay = true, className = 'rounded-2xl bord
       </div>
     )
   }
+  // Inside the C# app the picture comes from LibVLC and this page only draws the controls.
+  if (IS_HOST) {
+    return <HostPlayer channel={channel} autoplay={autoplay} className={className} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} />
+  }
   // No key on purpose: the same <video> and wrapper stay mounted for every channel, so full screen survives a channel change.
-  return <PlayerCore channel={channel} autoplay={autoplay} className={className} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} transcode={transcode} />
+  return <PlayerCore channel={channel} autoplay={autoplay} className={className} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} />
 }

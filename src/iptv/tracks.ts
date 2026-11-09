@@ -57,11 +57,15 @@ export function srtToVtt(srt: string): string {
   return `WEBVTT\n\n${body}\n`
 }
 
+/** The text of a subtitle file, in UTF-8 or (for old Turkish files) Windows-1254. */
+export function decodeSubtitle(buf: ArrayBuffer): string {
+  const text = new TextDecoder('utf-8').decode(buf)
+  return text.includes('\uFFFD') ? new TextDecoder('windows-1254').decode(buf) : text
+}
+
 /** Subtitle file bytes to a blob address the video can use, as WebVTT. */
 function subtitleBlob(buf: ArrayBuffer): string {
-  let text = new TextDecoder('utf-8').decode(buf)
-  // Turkish subtitle files are often Windows-1254, which UTF-8 turns into replacement characters.
-  if (text.includes('\uFFFD')) text = new TextDecoder('windows-1254').decode(buf)
+  const text = decodeSubtitle(buf)
   const vtt = /^\uFEFF?\s*WEBVTT/.test(text) ? text : srtToVtt(text)
   return URL.createObjectURL(new Blob([vtt], { type: 'text/vtt' }))
 }

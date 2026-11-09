@@ -8,12 +8,9 @@
     "build": "vite build",
     "lint": "oxlint --type-aware src --fix && oxlint --fix .",
     "typecheck": "tsc --noEmit",
-    "check": "oxlint --type-aware src --fix && oxlint --fix . && tsc --noEmit",
-    "desktop:dev": "electron . --dev",
-    "desktop:build": "vite build && electron-builder --win --x64"
+    "check": "oxlint --type-aware src --fix && oxlint --fix . && tsc --noEmit"
   },
   "dependencies": {
-    "ffmpeg-static": "^5.3.0",
     "hls.js": "^1.7.4",
     "lucide-react": "^0.468.0",
     "mpegts.js": "^1.8.2",
@@ -26,8 +23,6 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
-    "electron": "^45.2.1",
-    "electron-builder": "^26.18.0",
     "oxlint": "^1.80.0",
     "oxlint-tsgolint": "^7.0.2001",
     "postcss": "^8.4.49",
@@ -35,33 +30,5 @@
     "typescript": "~7.0.2",
     "vite": "^6.0.5"
   },
-  "main": "electron/main.mjs",
-  "description": "IPTV player for Windows (desktop app) and the browser. Add M3U or Xtream lists and watch live TV, movies and series.",
-  "trustedDependencies": [
-    "electron",
-    "ffmpeg-static"
-  ],
-  "build": {
-    "appId": "io.arcstudio.iptvplayer",
-    "productName": "IPTV Player",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**/*",
-      "electron/**/*",
-      "package.json",
-      "node_modules/ffmpeg-static/**/*"
-    ],
-    "win": {
-      "target": "nsis"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    },
-    "asarUnpack": [
-      "node_modules/ffmpeg-static/**"
-    ]
-  }
+  "description": "IPTV player user interface. It runs in a WebView2 window of a C# (WPF) app, which plays the video with LibVLC; in a normal browser it plays with the built-in HTML5 player."
 }

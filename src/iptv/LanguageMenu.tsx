@@ -71,7 +71,7 @@ export function LanguageMenu({ tracks, onAudio, onSubtitle, onSubtitleFile, onOp
     }
   }, [open, onOpenChange])
 
-  const audioNote = tracks.audio.length > 0 ? null : tracks.audioSupported ? 'Bu dosyada ayrı bir ses izi bulunamadı.' : 'Bu oynatıcı dosyadaki ses izlerini okuyamıyor. Windows uygulaması bunu açık başlatır; tarayıcıda chrome://flags/#enable-experimental-web-platform-features ayarını açıp yeniden başlat.'
+  const audioNote = tracks.audio.length > 0 ? null : tracks.audioSupported ? 'Bu dosyada ayrı bir ses izi bulunamadı.' : 'Bu tarayıcı dosyadaki ses izlerini göstermiyor. C# uygulamasında (LibVLC) tüm ses izleri listelenir.'
   const active = tracks.subIndex >= 0
 
   return (

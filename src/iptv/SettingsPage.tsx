@@ -5,7 +5,6 @@ import { PlaylistManager } from './PlaylistManager'
 import { KIND_LABEL, KINDS, categoriesOf } from './kinds'
 import type { CardSize, EpgRefresh } from './prefs'
 import { hrefFor, type SettingsTab } from './router'
-import { type TranscodeMode, desktop } from './desktop'
 import { PinDialog } from './PinDialog'
 import { hasPin } from './pin'
 import { Row, Section, Segmented, Toggle } from './SettingsControls'
@@ -160,26 +159,6 @@ function Playback() {
     <Section title="Oynatma">
       <Row label="Otomatik oynat" hint="Bir kanala veya içeriğe tıklayınca yayın hemen başlasın.">
         <Toggle label="Otomatik oynat" checked={prefs.autoplay} onChange={(autoplay) => updatePrefs({ autoplay })} />
-      </Row>
-      <Row
-        label="Film dönüştürme (ses ve altyazı)"
-        hint={
-          desktop()
-            ? 'Windows uygulaması filmi ffmpeg ile anında HLS\'e çevirir. Böylece dosyadaki tüm ses dilleri ve metin altyazıları menüde görünür. Otomatik: .mkv, .avi gibi dosyalar. Hep: tüm film ve bölümler (daha çok işlemci kullanır).'
-            : 'Bu özellik yalnızca Windows masaüstü uygulamasında çalışır. Tarayıcıda dosya olduğu gibi oynar.'
-        }
-      >
-        <Segmented<TranscodeMode>
-          label="Film dönüştürme"
-          disabled={!desktop()}
-          value={prefs.transcode}
-          onChange={(transcode) => updatePrefs({ transcode })}
-          options={[
-            { value: 'auto', label: 'Otomatik' },
-            { value: 'always', label: 'Hep' },
-            { value: 'off', label: 'Kapalı' },
-          ]}
-        />
       </Row>
       <Row label="Tampon süresi" hint="Yavaş bağlantılarda daha uzun tampon kesintileri azaltır." soon>
         <Segmented<10 | 30 | 60>

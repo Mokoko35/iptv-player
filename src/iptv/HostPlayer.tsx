@@ -89,6 +89,19 @@ export function HostPlayer({ channel, autoplay, className, compact, onPrev, onNe
     }
   }, [compact, fullscreen])
 
+  /* Ask for the audio and subtitle tracks. LibVLC only finds them a moment after it starts playing, so a single message
+     sent at the "Playing" event is often empty or never sent. Asking again a few times is cheap and always works. ---- */
+  useEffect(() => {
+    const timers = [800, 2000, 4000, 8000, 15000].map((ms) =>
+      window.setTimeout(() => {
+        const s = hostSnapshot()
+        const known = s.audio.some((t) => t.id !== -1) || s.subtitles.some((t) => t.id !== -1)
+        if (!known) send({ cmd: 'tracks' })
+      }, ms),
+    )
+    return () => timers.forEach((t) => window.clearTimeout(t))
+  }, [channel.url])
+
   /* Controls that hide after three seconds. ------------------------------------------------------------------ */
   const arm = useCallback(() => {
     window.clearTimeout(hideTimer.current)
@@ -106,6 +119,38 @@ export function HostPlayer({ channel, autoplay, className, compact, onPrev, onNe
     const id = window.setTimeout(wake, 0)
     return () => window.clearTimeout(id)
   }, [compact, fullscreen, wake])
+
+  // Any mouse movement over the video area brings the controls back, wherever the event lands: the check is on the position,
+  // not on which element received the event, so a layer above the player cannot hide the movement from it.
+  useEffect(() => {
+    if (compact) return
+    let lastLog = 0
+    const onMove = (e: Event) => {
+      const el = wrapRef.current
+      if (!el) return
+      const point = e as MouseEvent
+      const r = el.getBoundingClientRect()
+      const inside = point.clientX >= r.left && point.clientX <= r.right && point.clientY >= r.top && point.clientY <= r.bottom
+      if (inside) wake()
+      // Debugging aid: localStorage.setItem('iptv-player:debug-osd', '1') in the console, then move the mouse over the video.
+      if (localStorage.getItem('iptv-player:debug-osd') === '1' && Date.now() - lastLog > 1000) {
+        lastLog = Date.now()
+        console.log('[osd]', e.type, { x: point.clientX, y: point.clientY, inside, rect: { left: r.left, top: r.top, width: r.width, height: r.height }, hit: document.elementFromPoint(point.clientX, point.clientY)?.className })
+      }
+    }
+    const events = ['mousemove', 'pointermove', 'mousedown', 'pointerdown', 'touchstart', 'wheel'] as const
+    for (const name of events) document.addEventListener(name, onMove, { passive: true })
+    return () => {
+      for (const name of events) document.removeEventListener(name, onMove)
+    }
+  }, [compact, wake])
+
+  // C# can also report mouse movement over the video itself (see docs/HOST-BRIDGE.md, "activity").
+  useEffect(() => {
+    if (host.activity === 0) return
+    const id = window.setTimeout(wake, 0)
+    return () => window.clearTimeout(id)
+  }, [host.activity, wake])
 
   /* Actions. ------------------------------------------------------------------------------------------------- */
   const togglePlay = useCallback(() => send({ cmd: hostSnapshot().paused ? 'resume' : 'pause' }), [])
@@ -202,6 +247,7 @@ export function HostPlayer({ channel, autoplay, className, compact, onPrev, onNe
         onBack()
       }}
       onPointerMove={compact ? undefined : wake}
+      onMouseMove={compact ? undefined : wake}
       onPointerDown={compact ? undefined : wake}
       onFocusCapture={compact ? undefined : wake}
       // Transparent on purpose: the video is behind this element. In full screen it covers the whole page.
@@ -236,7 +282,8 @@ export function HostPlayer({ channel, autoplay, className, compact, onPrev, onNe
           onVolume={(v) => changeVolume(v)}
           onToggleMute={toggleMute}
           onToggleFullscreen={toggleFullscreen}
-          languageMenu={trackMenus ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
+          // Films and episodes always have the menu; a live channel gets it when LibVLC found extra audio or subtitles.
+          languageMenu={trackMenus || audio.length > 1 || subs.length > 0 ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
         />
       )}
 

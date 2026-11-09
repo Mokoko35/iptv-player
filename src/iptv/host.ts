@@ -39,6 +39,8 @@ export type HostCommand =
   /** Start (or replace) what is playing. */
   | { cmd: 'play'; url: string; title: string; kind: 'live' | 'movie' | 'series'; autoplay: boolean; volume: number; muted: boolean; subtitles: HostSubtitleSource[] }
   | { cmd: 'stop' }
+  /** Please send a `tracks` event now. The page asks a few times after `play`, because LibVLC finds the tracks a moment after it starts playing. */
+  | { cmd: 'tracks' }
   | { cmd: 'pause' }
   | { cmd: 'resume' }
   /** Jump to a position, in seconds. */
@@ -87,6 +89,8 @@ export interface HostState {
   subtitles: HostTrack[]
   ended: boolean
   error: string | null
+  /** Counts `activity` events: C# saw the mouse move over the video. Changes whenever it does. */
+  activity: number
 }
 
 export const INITIAL_HOST_STATE: HostState = {
@@ -102,6 +106,7 @@ export const INITIAL_HOST_STATE: HostState = {
   subtitles: [],
   ended: false,
   error: null,
+  activity: 0,
 }
 
 type Rec = Record<string, unknown>
@@ -161,6 +166,8 @@ export function reduceHost(state: HostState, data: unknown): HostState {
       return { ...state, error: typeof msg.message === 'string' && msg.message ? msg.message : 'Oynatılamadı.', buffering: false }
     case 'fullscreen':
       return { ...state, fullscreen: bool(msg.on) ?? state.fullscreen }
+    case 'activity':
+      return { ...state, activity: state.activity + 1 }
     default:
       return state
   }

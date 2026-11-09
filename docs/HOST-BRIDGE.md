@@ -29,6 +29,7 @@ Every message is an object with a `cmd` field.
 | `ready` | `version` | The page has loaded. Answer with `{ evt: 'hello' }`. |
 | `play` | `url`, `title`, `kind` (`live`/`movie`/`series`), `autoplay`, `volume` (0..1), `muted`, `subtitles` (`[{ url, label?, lang? }]`) | Start playing `url` (replaces what plays). Add each subtitle URL as a subtitle slave. |
 | `stop` | | Stop and release the media. |
+| `tracks` | | Send a `tracks` event now. The page sends this at 0.8, 2, 4, 8 and 15 seconds after `play` until it has received some tracks, because LibVLC finds the tracks a moment after it starts playing. |
 | `pause` / `resume` | | |
 | `seek` | `seconds` | Jump to that position. |
 | `volume` | `value` (0..1) | |
@@ -54,8 +55,34 @@ Send objects with an `evt` field.
 | `ended` | |
 | `error` | `message` (shown over the video) |
 | `fullscreen` | `on` — tell the page when the window enters or leaves full screen by other means. |
+| `activity` | (none) — optional. Send it when the mouse moves over the video view. If the page does not get mouse events there (the native video view sits above the page), this still brings the controls back. |
 
 Any other message is ignored.
+
+## Audio and subtitle tracks
+
+- LibVLC does not know the tracks when `Playing` fires; they appear a moment later. Send `tracks` on `ESAdded` / `ESSelected`
+  / `ESDeleted` (a short debounce, 200 ms, is enough), and also answer the page's `tracks` command.
+- `PostWebMessageAsJson` must be called on the **UI thread**. LibVLC raises its events on its own thread, so wrap every
+  `Post(...)` in `Dispatcher.BeginInvoke`. A call from the wrong thread throws, and if the exception is swallowed the
+  message simply never arrives (this looks exactly like "tracks never come").
+- Do not call back into LibVLC (`Stop`, `Play`, ...) from inside an event handler; read the track lists only.
+- The language button is always there for films and episodes. For a live channel it appears once LibVLC reports more than
+  one audio track or any subtitle track.
+
+## The controls do not show over the video
+
+The controls (play, progress, full screen, language) are drawn by the page, not by LibVLC. They show for 3 seconds when
+a video starts and whenever the mouse moves over the video area. If they never show, check, in this order:
+
+1. **Is the page drawn above the video?** In the WebView2 dev tools (F12) run
+   `document.querySelector('.player-surface').style.background = 'rgba(255,0,0,.5)'`. If the video area does not turn red
+   over the picture, the video view is above the page (airspace, see below) and nothing the page draws can be seen there.
+2. **Does the page get the mouse?** Run `localStorage.setItem('iptv-player:debug-osd', '1')`, then move the mouse over
+   the video. The console prints the position, the video rectangle, whether the mouse is inside it, and which element is
+   under the mouse (`hit`). `hit` should be the player's own element, not a menu or another window.
+3. **Is C# in the way?** If the console prints nothing while the mouse moves over the video, the native video view is
+   taking the mouse. Send `{ evt: 'activity' }` from C# when the video view sees mouse movement.
 
 ## Setting up WebView2
 

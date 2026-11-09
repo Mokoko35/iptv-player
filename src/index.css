@@ -371,8 +371,17 @@ html[data-host] .theme-media {
   background: transparent;
 }
 
-/* Full screen in the C# app: only the player stays. Everything else in the app is hidden (visibility keeps the layout, so
-   the player's place in the page is not lost and the video comes back to it when full screen ends). */
-html[data-fullscreen] .theme-media > :not([data-player-layer]) {
+/* The player's own layer lives in #player-root and takes no space of its own. */
+#player-root {
+  display: contents;
+}
+
+/* C# app: the video is drawn behind the page, so no page pixel may cover it.
+   - Player window open: the page is hidden (the dark layer and the video stay).
+   - Full screen: the page is hidden as well.
+   - Small player docked: the page stays; a hole is cut where the video is (done in PlayerOverlay, with clip-path).
+   visibility keeps the layout, so the page is exactly as it was when the player closes. */
+html[data-player-mode='modal'] #root,
+html[data-fullscreen] #root {
   visibility: hidden;
 }

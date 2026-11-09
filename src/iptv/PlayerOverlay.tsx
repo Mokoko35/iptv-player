@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Maximize2, X } from 'lucide-react'
 import { IS_HOST, setHostFullscreen, useHostState, useVideoRect } from './host'
 import { kindOf } from './kinds'
@@ -76,6 +77,42 @@ export function PlayerOverlay() {
       document.body.style.overflow = previous
     }
   }, [modal, minimizePlayer])
+
+  // In the C# app the picture is drawn behind the page, so no page pixel may sit on top of it. The page is told what the
+  // player is doing (see index.css): while the player window is open the page is hidden; while the small player is docked
+  // the page stays, with a hole cut where the video is.
+  const videoRect = useVideoRect()
+  useEffect(() => {
+    if (!IS_HOST) return
+    document.documentElement.dataset.playerMode = mode
+    return () => {
+      delete document.documentElement.dataset.playerMode
+    }
+  }, [mode])
+  useEffect(() => {
+    const page = document.getElementById('root')
+    if (!IS_HOST || !page) return
+    if (mode !== 'mini' || !videoRect) {
+      page.style.clipPath = ''
+      return
+    }
+    const cut = () => {
+      const p = page.getBoundingClientRect() // the page scrolls, the video does not
+      const x = videoRect.x - p.left
+      const y = videoRect.y - p.top
+      const right = x + videoRect.width
+      const bottom = y + videoRect.height
+      page.style.clipPath = `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${x}px ${y}px, ${right}px ${y}px, ${right}px ${bottom}px, ${x}px ${bottom}px, ${x}px ${y}px)`
+    }
+    cut()
+    window.addEventListener('scroll', cut, true)
+    window.addEventListener('resize', cut)
+    return () => {
+      window.removeEventListener('scroll', cut, true)
+      window.removeEventListener('resize', cut)
+      page.style.clipPath = ''
+    }
+  }, [mode, videoRect])
 
   if (!current || mode === 'closed') return null
 
@@ -170,12 +207,14 @@ export function PlayerOverlay() {
     )
   }
   const layer = isFull ? 'z-[90]' : modal ? 'z-50' : inline ? 'z-20' : 'z-40'
-  return (
+  const tree = (
     <div data-player-layer className={`pointer-events-none fixed inset-0 ${layer}`}>
       {modal && !bare && <HoleBackdrop onClick={minimizePlayer} />}
       {container}
     </div>
   )
+  // Outside the page root: the page is hidden or cut while the player is up, and the player must not be hidden with it.
+  return createPortal(tree, document.getElementById('player-root') ?? document.body)
 }
 
 /** The dark layer behind the player window, with a hole where the video is, so the native video stays visible. */

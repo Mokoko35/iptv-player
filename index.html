@@ -16,6 +16,8 @@
   <body>
     <!-- Built with Arc Studio — https://studio.arc.io -->
     <div id="root"></div>
+    <!-- The player is drawn here, outside #root, so hiding or cutting the page (host mode) never hides the player. -->
+    <div id="player-root" class="theme-media"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

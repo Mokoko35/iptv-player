@@ -180,6 +180,12 @@ void SendTracks() => Post(new
   `WebView2CompositionControl` for the page and give LibVLC a WPF-drawn surface (video callbacks into a
   `WriteableBitmap`/D3D image), or put the transparent WebView in a layered overlay window above the video window.
   This repository does not decide that for you.
+- **The page never covers the video.** The video is drawn behind the page, so a page pixel on top of it hides it. The page
+  handles this itself: while the player window (modal) is open, `html[data-player-mode='modal']` hides the whole page
+  (`visibility: hidden`) and the dark layer around the video has a hole where the video is; while the small player is
+  docked, the page stays and a hole is cut in it at the video rectangle (`clip-path` on `#root`); in the Live TV preview
+  box the page is already transparent there. When the player closes, the page is exactly as it was. The player itself is
+  drawn in `#player-root`, outside `#root`, so hiding the page never hides the player.
 - **Full screen.** While it is on (the page asked for it, or C# sent `{ evt: 'fullscreen', on: true }`), the page sets `data-fullscreen` on `<html>` and hides the menu, header and every other panel; only the player and its controls stay, and the video area covers the whole page. The page asks for it with `{ cmd: 'fullscreen' }`; it does not use the browser's Fullscreen API in the
   C# app (that API would paint an opaque black backdrop).
 - **Right-click in full screen** means "back" for films, so keep `AreDefaultContextMenusEnabled = false`.

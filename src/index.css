@@ -397,26 +397,21 @@ html[data-fullscreen] #root {
   }
 }
 
-/* C# app: the page is drawn transparent, over a native video, by WebView2. There every effect that needs the pixels behind
-   an element, or a layer of its own, makes a repaint cost whole seconds (a hover on a card did). So in that app:
-   no blur of what is behind, no filters, no shadows, no transitions, no animation except the loading spinner, and the
-   decorative blurred glows and the hover play button on cards are left out. Colors, borders and layout are unchanged. */
+/* C# app: the page is drawn transparent, over a native video, by WebView2. Blurring what is behind an element is the one
+   effect it cannot afford there (a single paint took seconds), so that stays off, together with the decorative blurred
+   glows and endless animations (the loading spinner still turns). Hover growth, soft shadows and transitions on the cards
+   are on, as in the browser. */
 html[data-host] *,
 html[data-host] *::before,
 html[data-host] *::after {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  filter: none !important;
-  box-shadow: none !important;
-  text-shadow: none !important;
-  transition: none !important;
 }
 html[data-host] *:not(.animate-spin),
 html[data-host] *:not(.animate-spin)::before,
 html[data-host] *:not(.animate-spin)::after {
   animation: none !important;
 }
-html[data-host] .host-hide,
 html[data-host] .blur-sm,
 html[data-host] .blur-2xl,
 html[data-host] .blur-3xl {

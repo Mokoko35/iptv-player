@@ -95,7 +95,7 @@ export function PlayerOverlay() {
     <Player
       channel={current}
       autoplay={prefs.autoplay}
-      className="rounded-none"
+      className={IS_HOST && inline ? 'rounded-none !aspect-auto h-full' : 'rounded-none'}
       compact={mode === 'mini'}
       wantFullscreen={fullscreenPending}
       onFullscreenHandled={fullscreenHandled}
@@ -130,14 +130,14 @@ export function PlayerOverlay() {
     ? 'pointer-events-auto absolute inset-0'
     : inline
     ? IS_HOST
-      ? 'pointer-events-auto absolute overflow-hidden border border-white/10'
+      ? 'pointer-events-auto absolute overflow-hidden rounded-[14px] border-8 border-white/[0.14] shadow-2xl'
       : 'fixed z-20 overflow-hidden rounded-2xl border border-white/10 bg-black shadow-xl'
     : modal
       ? IS_HOST
-        ? 'pointer-events-auto absolute inset-x-0 top-[3dvh] mx-auto max-h-[94dvh] w-[min(1100px,96vw,calc((100dvh_-_400px)*1.7778))] min-w-[min(96vw,360px)] overflow-y-auto border border-white/15 shadow-2xl'
+        ? 'pointer-events-auto absolute inset-x-0 top-[3dvh] mx-auto max-h-[94dvh] w-[min(1100px,96vw,calc((100dvh_-_400px)*1.7778))] min-w-[min(96vw,360px)] overflow-y-auto rounded-[18px] border-8 border-white/[0.14] shadow-2xl'
         : 'fixed left-1/2 top-1/2 z-50 max-h-[96dvh] w-[min(1100px,96vw,calc((100dvh_-_400px)*1.7778))] min-w-[min(96vw,360px)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl border border-white/15 bg-elev shadow-2xl'
       : IS_HOST
-        ? 'pointer-events-auto absolute bottom-[4.5rem] right-3 w-64 overflow-hidden border border-white/15 shadow-2xl sm:w-80 lg:bottom-5 lg:right-5'
+        ? 'pointer-events-auto absolute bottom-[4.5rem] right-3 w-64 overflow-hidden rounded-xl border-[5px] border-white/[0.16] shadow-2xl sm:w-80 lg:bottom-5 lg:right-5'
         : 'fixed bottom-[4.5rem] right-3 z-40 w-64 overflow-hidden rounded-2xl border border-white/15 bg-black shadow-2xl sm:w-80 lg:bottom-5 lg:right-5'
 
   const container = (
@@ -151,7 +151,7 @@ export function PlayerOverlay() {
       {player}
 
       {modal && !bare && (
-        <div className={`p-5 sm:p-6 ${IS_HOST ? 'rounded-b-3xl bg-elev' : ''}`}>
+        <div className={`p-5 sm:p-6 ${IS_HOST ? 'rounded-b-lg bg-elev' : ''}`}>
           <NowPlayingInfo channel={current} windowed />
         </div>
       )}
@@ -181,7 +181,8 @@ export function PlayerOverlay() {
       </>
     )
   }
-  const layer = isFull ? 'z-[90]' : modal ? 'z-50' : inline ? 'z-20' : 'z-40'
+  // The small player and the player window are always the top layer; the Live TV preview box sits in the page.
+  const layer = isFull || mode === 'mini' ? 'z-[2147483000]' : modal ? 'z-[2147482000]' : 'z-20'
   const tree = (
     <div data-player-layer className={`pointer-events-none fixed inset-0 ${layer}`}>
       {modal && !bare && <HoleBackdrop onClick={minimizePlayer} />}

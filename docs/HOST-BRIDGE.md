@@ -37,7 +37,7 @@ Every message is an object with a `cmd` field.
 | `audioTrack` | `id` | Select the audio track with that id (from your `tracks` event). |
 | `subtitleTrack` | `id` | Select a subtitle track; `-1` turns subtitles off. |
 | `addSubtitle` | `name`, `text` | A subtitle file the user picked, as text (.srt/.vtt). Save to a temp file and add it as a subtitle slave. |
-| `layout` | `x`, `y`, `width`, `height` (CSS px of the page), `dpr`, `visible` | Put the video view exactly there (multiply by `dpr` for device pixels), or hide it when `visible` is false. |
+| `layout` | `x`, `y`, `width`, `height` (CSS px of the page), `dpr`, `visible`, `radius` | Put the video view exactly there (multiply by `dpr` for device pixels), or hide it when `visible` is false. |
 | `fullscreen` | `on` | Make the window full screen (or leave it). The video area then covers the whole page, and `layout` follows. |
 
 `layout` is sent whenever the video area moves or changes size: inline in Live TV and Favorites, in the player window, in
@@ -188,11 +188,17 @@ void SendTracks() => Post(new
   normal mouse behavior (on a window narrower than 640 px there is no room for the strip and the page is hidden instead);
   in the Live TV preview box the page is already transparent there. When the player closes, the page is exactly as it
   was. The player itself is drawn in `#player-root`, outside `#root`, so hiding the page never hides the player.
-- **Drawing cost.** WebView2 draws the page transparent over the native video, and there any effect that needs the pixels
-  behind an element or a layer of its own is very expensive (a profile showed one paint of 3.5 s on a card hover). In the
-  C# app (`html[data-host]`) the page therefore has no `backdrop-filter`, `filter`, `box-shadow`, `text-shadow`,
-  transitions or animations (only the loading spinner turns), the decorative blurred glows are left out, and the cards show
-  no hover play button; hovering a card only changes its border. Colors and layout are the same as in the browser.
+- **Drawing cost.** WebView2 draws the page transparent over the native video. Blurring what is behind an element
+  (`backdrop-filter`) is too expensive there (one paint took seconds), so in the C# app (`html[data-host]`) it is off,
+  as are the decorative blurred glows and endless animations (only the loading spinner turns). Hover growth, soft
+  shadows and transitions on the cards are on, as in the browser.
+- **Frame around the video.** The Live TV preview, the player window and the small player each have a soft, rounded,
+  translucent frame (8 px, 8 px and 5 px thick) drawn by the page around the video area. The video area that `layout`
+  reports is the inside of the frame, so the frame never covers the picture. `layout.radius` (6) is the radius of the
+  frame's inner corner; if you clip the video view with a rounded rectangle of that radius, the corners match exactly
+  (without it the corners of the picture are square and sit a few pixels inside the frame, which is fine).
+- **Always on top.** The small player (and the player window and full screen) are the top layer of the page
+  (`z-index` 2147483000 and below), and the layer lets the mouse through everywhere except on the player itself.
 - **Full screen.** While it is on (the page asked for it, or C# sent `{ evt: 'fullscreen', on: true }`), the page sets `data-fullscreen` on `<html>` and hides the menu, header and every other panel; only the player and its controls stay, and the video area covers the whole page. The page asks for it with `{ cmd: 'fullscreen' }`; it does not use the browser's Fullscreen API in the
   C# app (that API would paint an opaque black backdrop).
 - **Right-click in full screen** means "back" for films, so keep `AreDefaultContextMenusEnabled = false`.

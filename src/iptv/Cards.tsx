@@ -61,7 +61,7 @@ export function Artwork({ channel, showLogo, fit }: { channel: Channel; showLogo
           alt=""
           loading="lazy"
           onError={() => setFailed(true)}
-          className={fit === 'cover' ? 'h-full w-full object-cover' : 'h-3/5 w-3/5 object-contain'}
+          className={fit === 'cover' ? 'h-full w-full object-cover' : 'h-3/5 w-3/5 object-contain drop-shadow-lg'}
         />
       ) : (
         <span className="display text-4xl font-semibold text-white/70">{initials(channel.name)}</span>
@@ -73,19 +73,19 @@ export function Artwork({ channel, showLogo, fit }: { channel: Channel; showLogo
 /** Live TV card: wide tile with the channel logo. */
 export function ChannelCard({ channel, active, favorite, showLogo, onPlay, onFavorite, className = '', epg }: CardProps) {
   return (
-    <article className={`group relative ${className}`}>
+    <article className={`group relative hover:z-10 ${className}`}>
       <button
         type="button"
         onClick={() => onPlay(channel)}
         aria-label={`${channel.name} kanalını oynat`}
         aria-current={active || undefined}
-        className={`block w-full overflow-hidden rounded-2xl border bg-white/[0.04] text-left hover:border-white/25 ${
+        className={`relative block w-full overflow-hidden rounded-2xl border bg-white/[0.04] text-left transition-[transform,box-shadow,border-color] duration-200 hover:z-10 hover:scale-[1.03] hover:border-white/25 hover:shadow-xl ${
           active ? 'border-accent ring-2 ring-accent/40' : 'border-white/10'
         }`}
       >
         <span className="relative block aspect-video overflow-hidden">
           <Artwork channel={channel} showLogo={showLogo} fit="contain" />
-          <span className="host-hide absolute inset-0 hidden place-items-center bg-black/40 group-hover:grid">
+          <span className="absolute inset-0 grid place-items-center bg-black/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
             <span className="grid h-11 w-11 place-items-center rounded-full bg-accent text-[var(--accent-ink)]">
               <Play size={20} fill="currentColor" aria-hidden="true" />
             </span>
@@ -125,7 +125,7 @@ export function ChannelCard({ channel, active, favorite, showLogo, onPlay, onFav
 /** Movie and series card: tall poster. Uses the list's logo as the poster when there is one, otherwise a placeholder. */
 export function PosterCard({ channel, active, favorite, showLogo, onPlay, onFavorite, className = '' }: CardProps) {
   return (
-    <article className={`group relative ${className}`}>
+    <article className={`group relative hover:z-10 ${className}`}>
       <button
         type="button"
         onClick={() => onPlay(channel)}
@@ -134,13 +134,13 @@ export function PosterCard({ channel, active, favorite, showLogo, onPlay, onFavo
         className="block w-full text-left"
       >
         <span
-          className={`relative block aspect-[2/3] overflow-hidden rounded-2xl border group-hover:border-white/25 ${
+          className={`relative block aspect-[2/3] overflow-hidden rounded-2xl border transition-[transform,box-shadow,border-color] duration-200 group-hover:scale-[1.04] group-hover:border-white/25 group-hover:shadow-xl ${
             active ? 'border-accent ring-2 ring-accent/40' : 'border-white/10'
           }`}
         >
           <Artwork channel={channel} showLogo={showLogo} fit="cover" />
           <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
-          <span className="host-hide absolute inset-0 hidden place-items-center bg-black/40 group-hover:grid">
+          <span className="absolute inset-0 grid place-items-center bg-black/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
             <span className="grid h-12 w-12 place-items-center rounded-full bg-accent text-[var(--accent-ink)]">
               <Play size={22} fill="currentColor" aria-hidden="true" />
             </span>

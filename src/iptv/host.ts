@@ -54,7 +54,7 @@ export type HostCommand =
   /** A subtitle file the user chose (.srt or .vtt), as text. */
   | { cmd: 'addSubtitle'; name: string; text: string }
   /** Where the video should be drawn, in CSS pixels of the page. `visible: false` hides the video. */
-  | { cmd: 'layout'; x: number; y: number; width: number; height: number; dpr: number; visible: boolean }
+  | { cmd: 'layout'; x: number; y: number; width: number; height: number; dpr: number; visible: boolean; radius: number }
   /** Make the window full screen (the video area then fills the page). */
   | { cmd: 'fullscreen'; on: boolean }
 
@@ -248,6 +248,8 @@ export interface VideoRect {
 
 let rect: VideoRect | null = null
 const rectListeners = new Set<() => void>()
+/** The soft corner of the frame around the video, in CSS pixels. C# may round the video's corners by this much. */
+const VIDEO_RADIUS = 6
 
 /** Remembers the video area and tells C# where to draw the picture. Pass null when there is no video. */
 export function setVideoRect(next: VideoRect | null): void {
@@ -255,8 +257,8 @@ export function setVideoRect(next: VideoRect | null): void {
   if (same) return
   rect = next
   rectListeners.forEach((l) => l())
-  if (next) send({ cmd: 'layout', x: next.x, y: next.y, width: next.width, height: next.height, dpr: window.devicePixelRatio || 1, visible: true })
-  else send({ cmd: 'layout', x: 0, y: 0, width: 0, height: 0, dpr: window.devicePixelRatio || 1, visible: false })
+  if (next) send({ cmd: 'layout', x: next.x, y: next.y, width: next.width, height: next.height, dpr: window.devicePixelRatio || 1, visible: true, radius: VIDEO_RADIUS })
+  else send({ cmd: 'layout', x: 0, y: 0, width: 0, height: 0, dpr: window.devicePixelRatio || 1, visible: false, radius: 0 })
 }
 
 const subscribeRect = (l: () => void) => {

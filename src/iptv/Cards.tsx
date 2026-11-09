@@ -40,7 +40,7 @@ function FavoriteButton({ favorite, name, onClick, row = false }: { favorite: bo
       onClick={onClick}
       aria-pressed={favorite}
       aria-label={favorite ? `${name} favorilerden çıkar` : `${name} favorilere ekle`}
-      className={`absolute grid h-9 w-9 place-items-center rounded-full bg-black/55 backdrop-blur transition ${row ? 'right-3 top-3 sm:top-1/2 sm:-translate-y-1/2' : 'right-2 top-2'} ${
+      className={`absolute grid h-9 w-9 place-items-center rounded-full bg-black/70 ${row ? 'right-3 top-3 sm:top-1/2 sm:-translate-y-1/2' : 'right-2 top-2'} ${
         favorite ? 'text-accent' : `text-white/80 hover:text-white ${row ? '' : 'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus-visible:opacity-100'}`
       }`}
     >
@@ -61,7 +61,7 @@ export function Artwork({ channel, showLogo, fit }: { channel: Channel; showLogo
           alt=""
           loading="lazy"
           onError={() => setFailed(true)}
-          className={fit === 'cover' ? 'h-full w-full object-cover' : 'h-3/5 w-3/5 object-contain drop-shadow-lg'}
+          className={fit === 'cover' ? 'h-full w-full object-cover' : 'h-3/5 w-3/5 object-contain'}
         />
       ) : (
         <span className="display text-4xl font-semibold text-white/70">{initials(channel.name)}</span>
@@ -79,13 +79,13 @@ export function ChannelCard({ channel, active, favorite, showLogo, onPlay, onFav
         onClick={() => onPlay(channel)}
         aria-label={`${channel.name} kanalını oynat`}
         aria-current={active || undefined}
-        className={`block w-full overflow-hidden rounded-2xl border bg-white/[0.04] text-left transition duration-200 hover:-translate-y-0.5 hover:border-white/25 ${
+        className={`block w-full overflow-hidden rounded-2xl border bg-white/[0.04] text-left hover:border-white/25 ${
           active ? 'border-accent ring-2 ring-accent/40' : 'border-white/10'
         }`}
       >
         <span className="relative block aspect-video overflow-hidden">
           <Artwork channel={channel} showLogo={showLogo} fit="contain" />
-          <span className="absolute inset-0 grid place-items-center bg-black/40 opacity-0 transition group-hover:opacity-100">
+          <span className="host-hide absolute inset-0 hidden place-items-center bg-black/40 group-hover:grid">
             <span className="grid h-11 w-11 place-items-center rounded-full bg-accent text-[var(--accent-ink)]">
               <Play size={20} fill="currentColor" aria-hidden="true" />
             </span>
@@ -134,13 +134,13 @@ export function PosterCard({ channel, active, favorite, showLogo, onPlay, onFavo
         className="block w-full text-left"
       >
         <span
-          className={`relative block aspect-[2/3] overflow-hidden rounded-2xl border transition duration-200 group-hover:-translate-y-0.5 group-hover:border-white/25 ${
+          className={`relative block aspect-[2/3] overflow-hidden rounded-2xl border group-hover:border-white/25 ${
             active ? 'border-accent ring-2 ring-accent/40' : 'border-white/10'
           }`}
         >
           <Artwork channel={channel} showLogo={showLogo} fit="cover" />
           <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
-          <span className="absolute inset-0 grid place-items-center bg-black/40 opacity-0 transition group-hover:opacity-100">
+          <span className="host-hide absolute inset-0 hidden place-items-center bg-black/40 group-hover:grid">
             <span className="grid h-12 w-12 place-items-center rounded-full bg-accent text-[var(--accent-ink)]">
               <Play size={22} fill="currentColor" aria-hidden="true" />
             </span>

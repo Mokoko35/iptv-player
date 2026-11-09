@@ -44,7 +44,7 @@ export function BrowsePage({ kind }: { kind: Kind }) {
       {showRail && <CategorySidebar {...rail} />}
 
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-20 -mx-4 bg-canvas/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:mx-0 lg:px-8 lg:py-5">
+        <header className="sticky top-0 z-20 -mx-4 bg-canvas/95 px-4 py-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-8 lg:py-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
               <Breadcrumb kind={kind} selected={selected} />

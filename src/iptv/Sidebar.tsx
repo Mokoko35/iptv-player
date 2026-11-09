@@ -92,7 +92,7 @@ export function Sidebar() {
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-white/10 bg-nav/95 backdrop-blur lg:hidden" aria-label="Ana menü">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-white/10 bg-nav/95 lg:hidden" aria-label="Ana menü">
         {ITEMS.map(({ page, label, icon: Icon }) => {
           const on = route.page === page
           return (

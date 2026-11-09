@@ -188,6 +188,11 @@ void SendTracks() => Post(new
   normal mouse behavior (on a window narrower than 640 px there is no room for the strip and the page is hidden instead);
   in the Live TV preview box the page is already transparent there. When the player closes, the page is exactly as it
   was. The player itself is drawn in `#player-root`, outside `#root`, so hiding the page never hides the player.
+- **Drawing cost.** WebView2 draws the page transparent over the native video, and there any effect that needs the pixels
+  behind an element or a layer of its own is very expensive (a profile showed one paint of 3.5 s on a card hover). In the
+  C# app (`html[data-host]`) the page therefore has no `backdrop-filter`, `filter`, `box-shadow`, `text-shadow`,
+  transitions or animations (only the loading spinner turns), the decorative blurred glows are left out, and the cards show
+  no hover play button; hovering a card only changes its border. Colors and layout are the same as in the browser.
 - **Full screen.** While it is on (the page asked for it, or C# sent `{ evt: 'fullscreen', on: true }`), the page sets `data-fullscreen` on `<html>` and hides the menu, header and every other panel; only the player and its controls stay, and the video area covers the whole page. The page asks for it with `{ cmd: 'fullscreen' }`; it does not use the browser's Fullscreen API in the
   C# app (that API would paint an opaque black backdrop).
 - **Right-click in full screen** means "back" for films, so keep `AreDefaultContextMenusEnabled = false`.

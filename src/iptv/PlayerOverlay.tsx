@@ -43,6 +43,44 @@ export function PlayerOverlay() {
   // the video above the page (`hello.frontLayer`). Otherwise it stays docked in the strip at the right.
   const pipFree = mode === 'mini' && (!IS_HOST || host.frontLayer)
   const pip = usePipBox(pipFree)
+  // The free small player must show the video even if the picture ends up behind the page (a WebView2 that is drawn above
+  // every other element of the window does that): the page gets a hole where the video is. If C# really draws the video
+  // above the page the hole changes nothing. `localStorage['iptv-player:pip-hole'] = '0'` turns the hole off.
+  const pipHole = IS_HOST && pipFree && localStorage.getItem('iptv-player:pip-hole') !== '0'
+  const videoRect = useVideoRect()
+  useEffect(() => {
+    const page = document.getElementById('root')
+    if (!page || !pipHole || !videoRect) return
+    let frame = 0
+    let last = ''
+    const cut = () => {
+      frame = 0
+      const p = page.getBoundingClientRect() // the page scrolls, the player does not
+      const x = Math.round(videoRect.x - p.left)
+      const y = Math.round(videoRect.y - p.top)
+      const right = Math.round(x + videoRect.width)
+      const bottom = Math.round(y + videoRect.height)
+      const next = `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, ${x}px ${y}px, ${right}px ${y}px, ${right}px ${bottom}px, ${x}px ${bottom}px, ${x}px ${y}px)`
+      if (next !== last) page.style.clipPath = last = next
+    }
+    const later = () => {
+      if (!frame) frame = requestAnimationFrame(cut)
+    }
+    cut()
+    window.addEventListener('scroll', later, true)
+    window.addEventListener('resize', later)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', later, true)
+      window.removeEventListener('resize', later)
+    }
+  }, [pipHole, videoRect])
+  useEffect(
+    () => () => {
+      document.getElementById('root')?.style.removeProperty('clip-path') // hole off, or the player gone
+    },
+    [pipHole],
+  )
   const vod = current !== null && kindOf(current) !== 'live'
   // "Back": leave full screen first, then close. A film or episode is stopped; a live channel shrinks to the corner.
   const goBack = () => {
@@ -102,7 +140,7 @@ export function PlayerOverlay() {
     <Player
       channel={current}
       autoplay={prefs.autoplay}
-      className={IS_HOST && inline ? 'rounded-none !aspect-auto h-full' : pipFree ? 'shrink-0 rounded-none' : 'rounded-none'}
+      className={IS_HOST && inline ? 'rounded-none !aspect-auto h-full' : pipFree ? `shrink-0 rounded-none ${pipHole ? '' : '!bg-black'}` : 'rounded-none'}
       layoutKey={pipFree ? pip.key : undefined}
       compact={mode === 'mini'}
       wantFullscreen={fullscreenPending}

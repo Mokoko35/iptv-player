@@ -199,7 +199,14 @@ void SendTracks() => Post(new
   and the page behind is left alone (no strip, no clipping). In a WPF app that draws the video into a `WriteableBitmap`
   this is a second `Image` over the `WebView2`, using the same bitmap as its `Source`, placed at the rectangle (hide the
   back one while `layer` is `'front'`); give it `IsHitTestVisible = true` so the mouse over the video does not reach the
-  cards under it. Without `frontLayer` the small player stays docked in the strip at the right as before, and cannot be
+  cards under it. Note: a classic WPF `WebView2` (a window handle) is always drawn above every other WPF element, so an
+  `Image` placed over it is still **under** the page; the page then shows through the small player and mixes with the
+  cards behind it. Use a `WebView2CompositionControl`, or draw the small player's video in a separate borderless, topmost
+  owner window placed at the rectangle (in screen coordinates). To keep the small player working even then, the page cuts
+  a hole in itself where the small player's video is (`clip-path` on `#root`), so the video shows through whether C#
+  draws it behind or in front; `localStorage.setItem('iptv-player:pip-hole', '0')` turns the hole off once your video is
+  really in front. `document.documentElement.dataset.playerMode` is `'pip'` while the free small player is shown.
+  Without `frontLayer` the small player stays docked in the strip at the right as before, and cannot be
   moved.
 - **Frame around the video.** The Live TV preview, the player window and the small player each have a soft, rounded,
   translucent frame (8 px, 8 px and 5 px thick) drawn by the page around the video area. The video area that `layout`

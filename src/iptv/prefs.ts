@@ -21,7 +21,12 @@ export interface Prefs {
   /** TheMovieDB key, to look up posters and summaries by title. Empty means off. */
   tmdbKey: string
   epgRefresh: EpgRefresh
+  /** Full screen on a live channel: how many seconds the controls and the program band stay on screen after the last movement. */
+  epgSeconds: number
 }
+
+export const EPG_SECONDS_MIN = 3
+export const EPG_SECONDS_MAX = 10
 
 export const DEFAULT_PREFS: Prefs = {
   theme: DEFAULT_THEME,
@@ -36,6 +41,7 @@ export const DEFAULT_PREFS: Prefs = {
   epgUrl: '',
   tmdbKey: '',
   epgRefresh: '24',
+  epgSeconds: 5,
 }
 
 const PREFS_KEY = 'iptv-player:prefs:v1'
@@ -61,6 +67,7 @@ export function loadPrefs(): Prefs {
       hardwareDecoding: typeof raw.hardwareDecoding === 'boolean' ? raw.hardwareDecoding : d.hardwareDecoding,
       tmdbKey: typeof raw.tmdbKey === 'string' ? raw.tmdbKey.trim().slice(0, 600) : d.tmdbKey,
       epgUrl: typeof raw.epgUrl === 'string' ? raw.epgUrl.slice(0, 500) : d.epgUrl,
+      epgSeconds: typeof raw.epgSeconds === 'number' && Number.isFinite(raw.epgSeconds) ? Math.min(EPG_SECONDS_MAX, Math.max(EPG_SECONDS_MIN, Math.round(raw.epgSeconds))) : d.epgSeconds,
       epgRefresh: raw.epgRefresh === 'off' || raw.epgRefresh === '6' || raw.epgRefresh === '12' || raw.epgRefresh === '24' ? raw.epgRefresh : d.epgRefresh,
     }
   } catch {

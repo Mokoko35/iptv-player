@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Maximize, Minimize, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react'
+import { minutesText } from './epgFormat'
 import type { Channel } from './types'
+import type { NowNext } from './xmltv'
 
 export const clockTime = (seconds: number): string => {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00'
@@ -52,6 +54,33 @@ interface Props {
   onToggleFullscreen: () => void
   /** The audio and subtitle menu, drawn just before the full screen button. */
   languageMenu?: ReactNode
+  /** What is on now and next on a live channel. The program band under the controls uses it, in full screen only. */
+  guide?: NowNext | null
+}
+
+/** A thin band under the controls: the program on now, how long is left of how long it is, and a bar for how far it has got. */
+function GuideBand({ guide }: { guide: NowNext }) {
+  const now = guide.now
+  if (!now) return null
+  const total = Math.max(1, Math.round((now.stop - now.start) / 60000))
+  const left = Math.round((1 - guide.progress) * total)
+  const percent = Math.round(Math.min(1, Math.max(0, guide.progress)) * 100)
+  return (
+    <div className="mt-2 border-t border-white/15 pt-2" role="group" aria-label="Şu an yayında">
+      <div className="flex items-baseline justify-between gap-4 text-sm">
+        <p className="min-w-0 truncate font-medium text-white">
+          <span className="mr-2 text-xs font-bold tracking-wider text-accent">ŞİMDİ</span>
+          {now.title}
+        </p>
+        <p className="shrink-0 tabular-nums text-white/85">
+          {minutesText(left)} kaldı <span className="text-white/55">/ {minutesText(total)}</span>
+        </p>
+      </div>
+      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/20" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-label="Programın ilerleyişi">
+        <div className="h-full rounded-full bg-accent transition-[width] duration-1000" style={{ width: `${percent}%` }} />
+      </div>
+    </div>
+  )
 }
 
 /** The title bar and the control bar over the picture. Shared by the HTML5 player and the player that drives LibVLC. */
@@ -125,6 +154,7 @@ export function PlayerChrome(p: Props) {
             {p.fullscreen ? <Minimize size={20} aria-hidden="true" /> : <Maximize size={20} aria-hidden="true" />}
           </ControlButton>
         </div>
+        {p.fullscreen && p.guide?.now && <GuideBand guide={p.guide} />}
       </div>
     </>
   )

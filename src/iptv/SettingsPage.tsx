@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { dateTime, megabytes } from './epgFormat'
 import { PlaylistManager } from './PlaylistManager'
 import { KIND_LABEL, KINDS, categoriesOf } from './kinds'
-import type { CardSize, EpgRefresh } from './prefs'
+import { EPG_SECONDS_MAX, EPG_SECONDS_MIN, type CardSize, type EpgRefresh } from './prefs'
 import { hrefFor, type SettingsTab } from './router'
 import { PinDialog } from './PinDialog'
 import { hasPin } from './pin'
@@ -213,6 +213,26 @@ function Epg() {
             spellCheck={false}
             className="field w-full sm:w-80"
           />
+        </Row>
+        <Row
+          label="EPG görünme süresi"
+          hint="Canlı yayını tam ekranda izlerken, fareyi son oynattığından sonra kontroller ve programın ince bandı (adı, kalan süre, ilerleme çubuğu) kaç saniye ekranda kalsın."
+          htmlFor="epg-seconds"
+        >
+          <div className="flex items-center gap-3">
+            <input
+              id="epg-seconds"
+              type="range"
+              min={EPG_SECONDS_MIN}
+              max={EPG_SECONDS_MAX}
+              step={1}
+              value={prefs.epgSeconds}
+              onChange={(e) => updatePrefs({ epgSeconds: Number(e.target.value) })}
+              aria-valuetext={`${prefs.epgSeconds} saniye`}
+              className="h-1.5 w-40 cursor-pointer accent-accent sm:w-56"
+            />
+            <span className="w-12 text-right text-sm tabular-nums text-[var(--ink-2)]">{prefs.epgSeconds} sn</span>
+          </div>
         </Row>
         <Row label="Otomatik güncelleme" hint="Rehber ne sıklıkla yenilensin. Kapalıysa yalnızca elle güncellenir.">
           <Segmented<EpgRefresh>

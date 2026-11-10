@@ -22,7 +22,7 @@ interface Box {
  * - mini: docked in the corner while you browse.
  */
 export function PlayerOverlay() {
-  const { current, playerMode, inlineHost, inlineSlot, minimizePlayer, expandPlayer, stopPlayer, prefs, channelNav, fullscreenPending, fullscreenHandled } = useMedia()
+  const { current, playerMode, inlineHost, inlineSlot, minimizePlayer, expandPlayer, stopPlayer, prefs, channelNav, fullscreenPending, fullscreenHandled, epg } = useMedia()
   const mode = !current || playerMode === 'closed' ? 'closed' : inlineHost ? 'inline' : playerMode
   const modal = mode === 'modal'
   const inline = mode === 'inline'
@@ -82,6 +82,9 @@ export function PlayerOverlay() {
     [pipHole],
   )
   const vod = current !== null && kindOf(current) !== 'live'
+  // Full screen on a live channel gets a thin program band with the controls, and both stay for the time set in Settings.
+  const guide = current !== null && !vod ? epg.nowNext(current) : null
+  const hideAfterMs = isFull && !vod ? prefs.epgSeconds * 1000 : undefined
   // "Back": leave full screen first, then close. A film or episode is stopped; a live channel shrinks to the corner.
   const goBack = () => {
     if (IS_HOST) setHostFullscreen(false)
@@ -143,6 +146,8 @@ export function PlayerOverlay() {
       className={IS_HOST && inline ? 'rounded-none !aspect-auto h-full' : pipFree ? `shrink-0 rounded-none ${pipHole ? '' : '!bg-black'}` : 'rounded-none'}
       layoutKey={pipFree ? pip.key : undefined}
       compact={mode === 'mini'}
+      guide={guide}
+      hideAfterMs={hideAfterMs}
       wantFullscreen={fullscreenPending}
       onFullscreenHandled={fullscreenHandled}
       onPrev={!(mode === 'mini') && channelNav ? () => channelNav.step(-1) : undefined}

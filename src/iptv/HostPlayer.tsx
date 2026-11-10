@@ -14,6 +14,8 @@ interface Props {
   channel: Channel
   autoplay: boolean
   className: string
+  /** Changes whenever the player window is moved or resized from outside; the new place is sent to C# at once. */
+  layoutKey?: string
   /** Corner mini player: no control bar, a click pauses and plays. */
   compact: boolean
   onPrev?: () => void
@@ -31,7 +33,7 @@ interface Props {
  * is an empty, transparent window onto it. It tells C# what to play and where the video area is, and shows the
  * controls on top. See docs/HOST-BRIDGE.md.
  */
-export function HostPlayer({ channel, autoplay, className, compact, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false }: Props) {
+export function HostPlayer({ channel, autoplay, className, layoutKey, compact, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false }: Props) {
   const host = useHostState()
   const wrapRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<number | undefined>(undefined)
@@ -67,14 +69,19 @@ export function HostPlayer({ channel, autoplay, className, compact, onPrev, onNe
     [],
   )
 
+  // The small player floats above the page when C# can draw the video there; everything else is behind the page.
+  const layer = compact && host.frontLayer ? 'front' : 'back'
+  const measureNow = useRef<() => void>(() => undefined)
+
   /* Tell C# where the video area is. ------------------------------------------------------------------------- */
   useEffect(() => {
     const el = wrapRef.current
     if (!el) return
     const measure = () => {
       const r = el.getBoundingClientRect()
-      setVideoRect({ x: r.left, y: r.top, width: r.width, height: r.height })
+      setVideoRect({ x: r.left, y: r.top, width: r.width, height: r.height, layer })
     }
+    measureNow.current = measure
     const observer = new ResizeObserver(measure) // also runs once right away
     observer.observe(el)
     window.addEventListener('resize', measure)
@@ -87,7 +94,9 @@ export function HostPlayer({ channel, autoplay, className, compact, onPrev, onNe
       window.removeEventListener('scroll', measure, true)
       window.clearInterval(poll)
     }
-  }, [compact, fullscreen])
+  }, [compact, fullscreen, layer])
+  // The free small player moves with the mouse: its new place goes to C# immediately, not at the next poll.
+  useEffect(() => measureNow.current(), [layoutKey])
 
   /* Ask for the audio and subtitle tracks. LibVLC only finds them a moment after it starts playing, so a single message
      sent at the "Playing" event is often empty or never sent. Asking again a few times is cheap and always works. ---- */

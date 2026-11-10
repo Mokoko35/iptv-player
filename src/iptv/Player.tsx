@@ -528,6 +528,7 @@ interface PlayerProps {
   channel: Channel | null
   autoplay?: boolean
   className?: string
+  layoutKey?: string
   compact?: boolean
   onPrev?: () => void
   onNext?: () => void
@@ -539,7 +540,7 @@ interface PlayerProps {
   trackMenus?: boolean
 }
 
-export function Player({ channel, autoplay = true, className = 'rounded-2xl border border-white/10', compact = false, onPrev, onNext, navLabel, topRight, wantFullscreen, onFullscreenHandled, onBack, trackMenus }: PlayerProps) {
+export function Player({ channel, autoplay = true, className = 'rounded-2xl border border-white/10', layoutKey, compact = false, onPrev, onNext, navLabel, topRight, wantFullscreen, onFullscreenHandled, onBack, trackMenus }: PlayerProps) {
   if (!channel) {
     return (
       <div className="grid aspect-video w-full place-items-center rounded-2xl border border-dashed border-white/15 bg-black/40 p-6 text-center">
@@ -552,7 +553,7 @@ export function Player({ channel, autoplay = true, className = 'rounded-2xl bord
   }
   // Inside the C# app the picture comes from LibVLC and this page only draws the controls.
   if (IS_HOST) {
-    return <HostPlayer channel={channel} autoplay={autoplay} className={className} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} />
+    return <HostPlayer channel={channel} autoplay={autoplay} className={className} layoutKey={layoutKey} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} />
   }
   // No key on purpose: the same <video> and wrapper stay mounted for every channel, so full screen survives a channel change.
   return <PlayerCore channel={channel} autoplay={autoplay} className={className} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} />

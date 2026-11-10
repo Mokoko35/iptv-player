@@ -37,7 +37,7 @@ Every message is an object with a `cmd` field.
 | `audioTrack` | `id` | Select the audio track with that id (from your `tracks` event). |
 | `subtitleTrack` | `id` | Select a subtitle track; `-1` turns subtitles off. |
 | `addSubtitle` | `name`, `text` | A subtitle file the user picked, as text (.srt/.vtt). Save to a temp file and add it as a subtitle slave. |
-| `layout` | `x`, `y`, `width`, `height` (CSS px of the page), `dpr`, `visible`, `radius` | Put the video view exactly there (multiply by `dpr` for device pixels), or hide it when `visible` is false. |
+| `layout` | `x`, `y`, `width`, `height` (CSS px of the page), `dpr`, `visible`, `radius`, `layer` | Put the video view exactly there (multiply by `dpr` for device pixels), or hide it when `visible` is false. `layer` is `'back'` (behind the page, the default) or `'front'` (above the page: the free small player, see below). |
 | `fullscreen` | `on` | Make the window full screen (or leave it). The video area then covers the whole page, and `layout` follows. |
 
 `layout` is sent whenever the video area moves or changes size: inline in Live TV and Favorites, in the player window, in
@@ -49,7 +49,7 @@ Send objects with an `evt` field.
 
 | `evt` | Fields |
 |---|---|
-| `hello` | `version` |
+| `hello` | `version`, `frontLayer` (optional, `true` if you can draw the video above the page) |
 | `state` | any of `paused`, `buffering`, `time` (seconds), `duration` (seconds, 0 for live), `volume` (0..1), `muted`. Send it about 4 times a second while playing, and on every change. Fields you leave out stay as they were. |
 | `tracks` | `audio`: `[{ id, label, lang?, selected }]`, `subtitles`: `[{ id, label, lang?, selected }]`. Send when the media's tracks are known and after any change. Entries with `id: -1` ("Disable") are ignored by the page. |
 | `ended` | |
@@ -192,6 +192,15 @@ void SendTracks() => Post(new
   (`backdrop-filter`) is too expensive there (one paint took seconds), so in the C# app (`html[data-host]`) it is off,
   as are the decorative blurred glows and endless animations (only the loading spinner turns). Hover growth, soft
   shadows and transitions on the cards are on, as in the browser.
+- **The free small player.** If `hello` says `frontLayer: true`, the small player is a window the user can drag anywhere
+  (title bar), resize (corner strip, or Shift + arrow keys) and put back in the corner (double click on the title bar); it
+  remembers where it was. It sends `layout` with `layer: 'front'`: draw the video **above** the web view at that rectangle.
+  The page draws the title bar, the pause, enlarge and close buttons and the frame *around* the rectangle, never under it,
+  and the page behind is left alone (no strip, no clipping). In a WPF app that draws the video into a `WriteableBitmap`
+  this is a second `Image` over the `WebView2`, using the same bitmap as its `Source`, placed at the rectangle (hide the
+  back one while `layer` is `'front'`); give it `IsHitTestVisible = true` so the mouse over the video does not reach the
+  cards under it. Without `frontLayer` the small player stays docked in the strip at the right as before, and cannot be
+  moved.
 - **Frame around the video.** The Live TV preview, the player window and the small player each have a soft, rounded,
   translucent frame (8 px, 8 px and 5 px thick) drawn by the page around the video area. The video area that `layout`
   reports is the inside of the frame, so the frame never covers the picture. `layout.radius` (6) is the radius of the

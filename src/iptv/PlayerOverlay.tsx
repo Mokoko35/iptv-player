@@ -22,7 +22,7 @@ interface Box {
  * - mini: docked in the corner while you browse.
  */
 export function PlayerOverlay() {
-  const { current, playerMode, inlineHost, inlineSlot, minimizePlayer, expandPlayer, stopPlayer, prefs, channelNav, fullscreenPending, fullscreenHandled, epg } = useMedia()
+  const { current, playerMode, inlineHost, inlineSlot, minimizePlayer, expandPlayer, stopPlayer, prefs, channelNav, fullscreenPending, fullscreenHandled, epg, updatePrefs } = useMedia()
   const mode = !current || playerMode === 'closed' ? 'closed' : inlineHost ? 'inline' : playerMode
   const modal = mode === 'modal'
   const inline = mode === 'inline'
@@ -148,6 +148,8 @@ export function PlayerOverlay() {
       compact={mode === 'mini'}
       guide={guide}
       hideAfterMs={hideAfterMs}
+      aspect={prefs.aspect}
+      onAspect={(aspect) => updatePrefs({ aspect })}
       wantFullscreen={fullscreenPending}
       onFullscreenHandled={fullscreenHandled}
       onPrev={!(mode === 'mini') && channelNav ? () => channelNav.step(-1) : undefined}

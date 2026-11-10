@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { dateTime, megabytes } from './epgFormat'
 import { PlaylistManager } from './PlaylistManager'
 import { KIND_LABEL, KINDS, categoriesOf } from './kinds'
-import { EPG_SECONDS_MAX, EPG_SECONDS_MIN, type CardSize, type EpgRefresh } from './prefs'
+import { EPG_SECONDS_MAX, EPG_SECONDS_MIN, type AspectMode, type CardSize, type EpgRefresh } from './prefs'
 import { hrefFor, type SettingsTab } from './router'
 import { PinDialog } from './PinDialog'
 import { hasPin } from './pin'
@@ -159,6 +159,20 @@ function Playback() {
     <Section title="Oynatma">
       <Row label="Otomatik oynat" hint="Bir kanala veya içeriğe tıklayınca yayın hemen başlasın.">
         <Toggle label="Otomatik oynat" checked={prefs.autoplay} onChange={(autoplay) => updatePrefs({ autoplay })} />
+      </Row>
+      <Row label="Görüntü oranı" hint="Film ekrana nasıl otursun. Orijinal oran, filmin kendi şeklini korur; Uzat görüntüyü bozar. Oynatıcıdaki düğmeden de değiştirebilirsin.">
+        <Segmented<AspectMode>
+          label="Görüntü oranı"
+          value={prefs.aspect}
+          onChange={(aspect) => updatePrefs({ aspect })}
+          options={[
+            { value: 'fit', label: 'Orijinal' },
+            { value: 'fill', label: 'Doldur' },
+            { value: 'stretch', label: 'Uzat' },
+            { value: '16:9', label: '16:9' },
+            { value: '4:3', label: '4:3' },
+          ]}
+        />
       </Row>
       <Row label="Tampon süresi" hint="Yavaş bağlantılarda daha uzun tampon kesintileri azaltır." soon>
         <Segmented<10 | 30 | 60>

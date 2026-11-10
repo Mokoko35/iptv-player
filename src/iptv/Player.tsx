@@ -8,6 +8,8 @@ import { loadVolume, saveVolume } from './volume'
 import { EMPTY_TRACKS, type TrackInfo, labelFor, loadSubtitle, subtitleFromFile } from './tracks'
 import type { Channel, SubtitleSource } from './types'
 import type { NowNext } from './xmltv'
+import { AspectMenu } from './AspectMenu'
+import type { AspectMode } from './prefs'
 
 type Engine = 'hls' | 'ts' | 'native'
 const NO_SOURCES: SubtitleSource[] = []
@@ -95,9 +97,12 @@ interface CoreProps {
   guide?: NowNext | null
   /** How long the controls stay after the last activity, in milliseconds. */
   hideAfterMs?: number
+  /** The picture shape. 'fit' keeps the film's own shape. */
+  aspect?: AspectMode
+  onAspect?: (mode: AspectMode) => void
 }
 
-function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false, guide = null, hideAfterMs = HIDE_AFTER_MS }: CoreProps) {
+function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false, guide = null, hideAfterMs = HIDE_AFTER_MS, aspect = 'fit', onAspect }: CoreProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<number | undefined>(undefined)
@@ -485,6 +490,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
         onClick={togglePlay}
         onDoubleClick={compact ? undefined : toggleFullscreen}
         className="h-full w-full"
+        style={{ objectFit: aspect === 'fill' ? 'cover' : aspect === 'stretch' ? 'fill' : 'contain' }}
       />
 
       {loading && !message && (
@@ -514,6 +520,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
           onToggleMute={toggleMute}
           onToggleFullscreen={toggleFullscreen}
           guide={guide}
+        aspectMenu={onAspect ? <AspectMenu value={aspect} onChange={onAspect} forced={false} onOpenChange={setMenuOpen} /> : undefined}
         languageMenu={trackMenus ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
         />
       )}
@@ -548,9 +555,12 @@ interface PlayerProps {
   guide?: NowNext | null
   /** How long the controls stay after the last activity, in milliseconds. */
   hideAfterMs?: number
+  /** The picture shape. 'fit' keeps the film's own shape. */
+  aspect?: AspectMode
+  onAspect?: (mode: AspectMode) => void
 }
 
-export function Player({ channel, autoplay = true, className = 'rounded-2xl border border-white/10', layoutKey, compact = false, onPrev, onNext, navLabel, topRight, wantFullscreen, onFullscreenHandled, onBack, trackMenus, guide, hideAfterMs }: PlayerProps) {
+export function Player({ channel, autoplay = true, className = 'rounded-2xl border border-white/10', layoutKey, compact = false, onPrev, onNext, navLabel, topRight, wantFullscreen, onFullscreenHandled, onBack, trackMenus, guide, hideAfterMs, aspect, onAspect }: PlayerProps) {
   if (!channel) {
     return (
       <div className="grid aspect-video w-full place-items-center rounded-2xl border border-dashed border-white/15 bg-black/40 p-6 text-center">
@@ -563,8 +573,8 @@ export function Player({ channel, autoplay = true, className = 'rounded-2xl bord
   }
   // Inside the C# app the picture comes from LibVLC and this page only draws the controls.
   if (IS_HOST) {
-    return <HostPlayer channel={channel} autoplay={autoplay} className={className} layoutKey={layoutKey} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} guide={guide} hideAfterMs={hideAfterMs} />
+    return <HostPlayer channel={channel} autoplay={autoplay} className={className} layoutKey={layoutKey} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} guide={guide} hideAfterMs={hideAfterMs} aspect={aspect} onAspect={onAspect} />
   }
   // No key on purpose: the same <video> and wrapper stay mounted for every channel, so full screen survives a channel change.
-  return <PlayerCore channel={channel} autoplay={autoplay} className={className} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} guide={guide} hideAfterMs={hideAfterMs} />
+  return <PlayerCore channel={channel} autoplay={autoplay} className={className} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} guide={guide} hideAfterMs={hideAfterMs} aspect={aspect} onAspect={onAspect} />
 }

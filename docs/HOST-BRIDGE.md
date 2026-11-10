@@ -35,6 +35,7 @@ Every message is an object with a `cmd` field.
 | `volume` | `value` (0..1) | |
 | `mute` | `on` | |
 | `audioTrack` | `id` | Select the audio track with that id (from your `tracks` event). |
+| `aspect` | `mode`: `'fit'`, `'fill'`, `'stretch'`, `'16:9'` or `'4:3'` | How the picture fills its `layout` rectangle. Also sent inside `play` (as `aspect`) so a new film starts right. See "Picture shape" below. |
 | `subtitleTrack` | `id` | Select a subtitle track; `-1` turns subtitles off. |
 | `addSubtitle` | `name`, `text` | A subtitle file the user picked, as text (.srt/.vtt). Save to a temp file and add it as a subtitle slave. |
 | `layout` | `x`, `y`, `width`, `height` (CSS px of the page), `dpr`, `visible`, `radius`, `layer` | Put the video view exactly there (multiply by `dpr` for device pixels), or hide it when `visible` is false. `layer` is `'back'` (behind the page, the default) or `'front'` (above the page: the free small player, see below). |
@@ -58,6 +59,24 @@ Send objects with an `evt` field.
 | `activity` | (none) — optional. Send it when the mouse moves over the video view. If the page does not get mouse events there (the native video view sits above the page), this still brings the controls back. |
 
 Any other message is ignored.
+
+## Picture shape (stretched films)
+
+A film that looks stretched is stretched by the host, not by the page: the page only gives the video a rectangle (`layout`),
+and the picture is what C# draws into it. If the `Image` that shows the LibVLC frames has `Stretch="Fill"`, every film is
+squeezed into the rectangle, whatever its own shape. The default must be `Stretch="Uniform"` (the film keeps its shape,
+black bars fill the rest). The player has a button (and a setting in Settings, Playback) for the shape, and the page tells
+C# with `aspect`:
+
+| `mode` | Meaning | WPF `Image.Stretch` |
+|---|---|---|
+| `fit` (default) | The film's own shape, bars where needed. | `Uniform` |
+| `fill` | Fill the rectangle, keep the shape, crop the overflow. | `UniformToFill` (and `ClipToBounds = true` on the parent) |
+| `stretch` | Fill the rectangle, distort. | `Fill` |
+| `16:9`, `4:3` | Force that shape: compute the largest rectangle of that shape inside `layout`, centered, and draw the frame into it. | `Fill` into that smaller rectangle |
+
+`aspect` also comes inside `play`, so the first frame of a new film is already right. It applies to the current picture and
+to the next ones.
 
 ## Audio and subtitle tracks
 

@@ -3,6 +3,10 @@ import { DEFAULT_THEME, THEMES, type ThemeId } from './themes'
 
 export type CardSize = 'sm' | 'md' | 'lg'
 export type EpgRefresh = 'off' | '6' | '12' | '24'
+/** The shape of the picture: the film's own ('fit'), filled and cropped, stretched, or forced to 16:9 / 4:3. */
+export type AspectMode = 'fit' | 'fill' | 'stretch' | '16:9' | '4:3'
+export const ASPECT_MODES: AspectMode[] = ['fit', 'fill', 'stretch', '16:9', '4:3']
+export const ASPECT_LABELS: Record<AspectMode, string> = { fit: 'Orijinal oran', fill: 'Doldur (kırp)', stretch: 'Uzat', '16:9': '16:9', '4:3': '4:3' }
 
 export interface Prefs {
   theme: ThemeId
@@ -23,6 +27,8 @@ export interface Prefs {
   epgRefresh: EpgRefresh
   /** Full screen on a live channel: how many seconds the controls and the program band stay on screen after the last movement. */
   epgSeconds: number
+  /** How the picture fills the player. Applies to every film and channel. */
+  aspect: AspectMode
 }
 
 export const EPG_SECONDS_MIN = 3
@@ -42,6 +48,7 @@ export const DEFAULT_PREFS: Prefs = {
   tmdbKey: '',
   epgRefresh: '24',
   epgSeconds: 5,
+  aspect: 'fit',
 }
 
 const PREFS_KEY = 'iptv-player:prefs:v1'
@@ -68,6 +75,7 @@ export function loadPrefs(): Prefs {
       tmdbKey: typeof raw.tmdbKey === 'string' ? raw.tmdbKey.trim().slice(0, 600) : d.tmdbKey,
       epgUrl: typeof raw.epgUrl === 'string' ? raw.epgUrl.slice(0, 500) : d.epgUrl,
       epgSeconds: typeof raw.epgSeconds === 'number' && Number.isFinite(raw.epgSeconds) ? Math.min(EPG_SECONDS_MAX, Math.max(EPG_SECONDS_MIN, Math.round(raw.epgSeconds))) : d.epgSeconds,
+      aspect: ASPECT_MODES.find((m) => m === raw.aspect) ?? d.aspect,
       epgRefresh: raw.epgRefresh === 'off' || raw.epgRefresh === '6' || raw.epgRefresh === '12' || raw.epgRefresh === '24' ? raw.epgRefresh : d.epgRefresh,
     }
   } catch {

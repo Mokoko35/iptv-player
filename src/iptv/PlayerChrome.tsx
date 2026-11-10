@@ -54,6 +54,8 @@ interface Props {
   onToggleFullscreen: () => void
   /** The audio and subtitle menu, drawn just before the full screen button. */
   languageMenu?: ReactNode
+  /** The picture shape menu, drawn before the language menu. */
+  aspectMenu?: ReactNode
   /** What is on now and next on a live channel. The program band under the controls uses it, in full screen only. */
   guide?: NowNext | null
 }
@@ -149,6 +151,7 @@ export function PlayerChrome(p: Props) {
               </span>
             )}
           </div>
+          {p.aspectMenu}
           {p.languageMenu}
           <ControlButton label={p.fullscreen ? 'Tam ekrandan çık (F)' : 'Tam ekran (F)'} onClick={p.onToggleFullscreen}>
             {p.fullscreen ? <Minimize size={20} aria-hidden="true" /> : <Maximize size={20} aria-hidden="true" />}

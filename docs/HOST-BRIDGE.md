@@ -37,11 +37,11 @@ Every message is an object with a `cmd` field.
 | `audioTrack` | `id` | Select the audio track with that id (from your `tracks` event). |
 | `subtitleTrack` | `id` | Select a subtitle track; `-1` turns subtitles off. |
 | `addSubtitle` | `name`, `text` | A subtitle file the user picked, as text (.srt/.vtt). Save to a temp file and add it as a subtitle slave. |
-| `layout` | `x`, `y`, `width`, `height` (CSS px of the page), `dpr`, `visible`, `radius`, `layer` | Put the video view exactly there (multiply by `dpr` for device pixels), or hide it when `visible` is false. `layer` is `'back'` (behind the page, the default) or `'front'` (above the page: the free small player, see below). |
+| `layout` | `x`, `y`, `width`, `height` (CSS px of the page), `dpr`, `visible`, `radius` | Put the video view exactly there (multiply by `dpr` for device pixels), or hide it when `visible` is false. |
 | `fullscreen` | `on` | Make the window full screen (or leave it). The video area then covers the whole page, and `layout` follows. |
 
-`layout` is sent whenever the video area moves or changes size: inline in Live TV and Favorites, in the player window, in
-the corner mini player, and in full screen.
+`layout` is sent whenever the video area moves or changes size: inline in Live TV and Favorites, in the player window, and
+in full screen.
 
 ## C# → page (events)
 
@@ -49,7 +49,7 @@ Send objects with an `evt` field.
 
 | `evt` | Fields |
 |---|---|
-| `hello` | `version`, `frontLayer` (optional, `true` if you can draw the video above the page) |
+| `hello` | `version` |
 | `state` | any of `paused`, `buffering`, `time` (seconds), `duration` (seconds, 0 for live), `volume` (0..1), `muted`. Send it about 4 times a second while playing, and on every change. Fields you leave out stay as they were. |
 | `tracks` | `audio`: `[{ id, label, lang?, selected }]`, `subtitles`: `[{ id, label, lang?, selected }]`. Send when the media's tracks are known and after any change. Entries with `id: -1` ("Disable") are ignored by the page. |
 | `ended` | |
@@ -180,40 +180,24 @@ void SendTracks() => Post(new
   `WebView2CompositionControl` for the page and give LibVLC a WPF-drawn surface (video callbacks into a
   `WriteableBitmap`/D3D image), or put the transparent WebView in a layered overlay window above the video window.
   This repository does not decide that for you.
-- **The page never covers the video.** The video is drawn behind the page, so a page pixel on top of it hides it. The page
-  avoids this by layout, with no clipping and nothing that catches the mouse: while the player window (modal) is open,
-  `html[data-player-mode='modal']` hides the whole page (`visibility: hidden`) and the dark layer around the video has a
-  hole where the video is; while the small player is docked, the page leaves a free 22.5 rem strip on the right
-  (`padding-right` on `#root`) and the small player sits in it, so nothing overlaps and the page keeps working with its
-  normal mouse behavior (on a window narrower than 640 px there is no room for the strip and the page is hidden instead);
-  in the Live TV preview box the page is already transparent there. When the player closes, the page is exactly as it
-  was. The player itself is drawn in `#player-root`, outside `#root`, so hiding the page never hides the player.
+- **The page never covers the video.** The video is drawn behind the page, so a page pixel on top of it hides it. While
+  the player window (modal) is open, `html[data-player-mode='modal']` hides the whole page (`visibility: hidden`) and the
+  dark layer around the video has a hole where the video is; in the Live TV preview box the page is already transparent
+  there. When the player closes, the page is exactly as it was. The player itself is drawn in `#player-root`, outside
+  `#root`, so hiding the page never hides the player.
+- **There is no small corner player.** Closing the player window (X, Esc, click outside) sends `stop`; leaving Live TV or
+  Favorites while a channel plays there also sends `stop`. Nothing keeps playing behind the page, so the page never needs a
+  free strip or a hole for a floating video.
 - **Drawing cost.** WebView2 draws the page transparent over the native video. Blurring what is behind an element
   (`backdrop-filter`) is too expensive there (one paint took seconds), so in the C# app (`html[data-host]`) it is off,
   as are the decorative blurred glows and endless animations (only the loading spinner turns). Hover growth, soft
   shadows and transitions on the cards are on, as in the browser.
-- **The free small player.** If `hello` says `frontLayer: true`, the small player is a window the user can drag anywhere
-  (title bar), resize (corner strip, or Shift + arrow keys) and put back in the corner (double click on the title bar); it
-  remembers where it was. It sends `layout` with `layer: 'front'`: draw the video **above** the web view at that rectangle.
-  The page draws the title bar, the pause, enlarge and close buttons and the frame *around* the rectangle, never under it,
-  and the page behind is left alone (no strip, no clipping). In a WPF app that draws the video into a `WriteableBitmap`
-  this is a second `Image` over the `WebView2`, using the same bitmap as its `Source`, placed at the rectangle (hide the
-  back one while `layer` is `'front'`); give it `IsHitTestVisible = true` so the mouse over the video does not reach the
-  cards under it. Note: a classic WPF `WebView2` (a window handle) is always drawn above every other WPF element, so an
-  `Image` placed over it is still **under** the page; the page then shows through the small player and mixes with the
-  cards behind it. Use a `WebView2CompositionControl`, or draw the small player's video in a separate borderless, topmost
-  owner window placed at the rectangle (in screen coordinates). To keep the small player working even then, the page cuts
-  a hole in itself where the small player's video is (`clip-path` on `#root`), so the video shows through whether C#
-  draws it behind or in front; `localStorage.setItem('iptv-player:pip-hole', '0')` turns the hole off once your video is
-  really in front. `document.documentElement.dataset.playerMode` is `'pip'` while the free small player is shown.
-  Without `frontLayer` the small player stays docked in the strip at the right as before, and cannot be
-  moved.
-- **Frame around the video.** The Live TV preview, the player window and the small player each have a soft, rounded,
-  translucent frame (8 px, 8 px and 5 px thick) drawn by the page around the video area. The video area that `layout`
+- **Frame around the video.** The Live TV preview and the player window each have a soft, rounded,
+  translucent frame (8 px thick) drawn by the page around the video area. The video area that `layout`
   reports is the inside of the frame, so the frame never covers the picture. `layout.radius` (6) is the radius of the
   frame's inner corner; if you clip the video view with a rounded rectangle of that radius, the corners match exactly
   (without it the corners of the picture are square and sit a few pixels inside the frame, which is fine).
-- **Always on top.** The small player (and the player window and full screen) are the top layer of the page
+- **Always on top.** The player window and full screen are the top layer of the page
   (`z-index` 2147483000 and below), and the layer lets the mouse through everywhere except on the player itself.
 - **Full screen.** While it is on (the page asked for it, or C# sent `{ evt: 'fullscreen', on: true }`), the page sets `data-fullscreen` on `<html>` and hides the menu, header and every other panel; only the player and its controls stay, and the video area covers the whole page. The page asks for it with `{ cmd: 'fullscreen' }`; it does not use the browser's Fullscreen API in the
   C# app (that API would paint an opaque black backdrop).

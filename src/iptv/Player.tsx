@@ -75,8 +75,6 @@ interface CoreProps {
   channel: Channel
   autoplay: boolean
   className: string
-  /** Corner mini player: no control bar, a click pauses and plays. */
-  compact: boolean
   onPrev?: () => void
   onNext?: () => void
   /** "12 / 340": where the channel is in its list. */
@@ -92,7 +90,7 @@ interface CoreProps {
   trackMenus?: boolean
 }
 
-function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false }: CoreProps) {
+function PlayerCore({ channel, autoplay, className, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false }: CoreProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<number | undefined>(undefined)
@@ -387,9 +385,9 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
   // which is longer than it takes this player to appear.
   useEffect(() => {
     if (!wantFullscreen) return
-    if (!compact && !document.fullscreenElement) void wrapRef.current?.requestFullscreen().catch(() => undefined)
+    if (!document.fullscreenElement) void wrapRef.current?.requestFullscreen().catch(() => undefined)
     onFullscreenHandled?.()
-  }, [wantFullscreen, compact, onFullscreenHandled])
+  }, [wantFullscreen, onFullscreenHandled])
 
   useEffect(() => {
     const onChange = () => {
@@ -399,17 +397,6 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
     document.addEventListener('fullscreenchange', onChange)
     return () => document.removeEventListener('fullscreenchange', onChange)
   }, [wake])
-
-  // Shrinking to the corner removes the controls, so full screen must not be left running with nothing to click.
-  useEffect(() => {
-    if (compact && document.fullscreenElement === wrapRef.current) void document.exitFullscreen().catch(() => undefined)
-  }, [compact])
-
-  // Going from the corner back to a window starts with the controls showing, not with whatever state they were left in.
-  useEffect(() => {
-    const id = window.setTimeout(wake, 0)
-    return () => window.clearTimeout(id)
-  }, [compact, wake])
 
   // Mouse or touch anywhere in full screen counts as activity, even over the overlay or the close button.
   useEffect(() => {
@@ -431,7 +418,6 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
 
   // Keyboard: left/right change the channel (or skip 10 seconds in a film), space pauses, M mutes, F is full screen.
   useEffect(() => {
-    if (compact) return
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return
@@ -452,33 +438,33 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [compact, onPrev, onNext, togglePlay, toggleMute, toggleFullscreen, wake, seek, isVod])
+  }, [onPrev, onNext, togglePlay, toggleMute, toggleFullscreen, wake, seek, isVod])
 
   const message = blocked
     ? 'Bu yayın http:// ile başlıyor. https sayfalarda tarayıcı bunu engeller. C# uygulamasında veya http:// ile açılan sayfada oynar.'
     : error
-  const show = !compact && (awake || paused || message !== null || menuOpen)
-  const hideCursor = !compact && !show && !paused
+  const show = awake || paused || message !== null || menuOpen
+  const hideCursor = !show && !paused
 
   return (
     <div
       ref={wrapRef}
       onContextMenu={(e) => {
         // Right-click on the full screen picture is "back".
-        if (!onBack || compact || document.fullscreenElement !== wrapRef.current) return
+        if (!onBack || document.fullscreenElement !== wrapRef.current) return
         e.preventDefault()
         onBack()
       }}
-      onPointerMove={compact ? undefined : wake}
-      onPointerDown={compact ? undefined : wake}
-      onFocusCapture={compact ? undefined : wake}
+      onPointerMove={wake}
+      onPointerDown={wake}
+      onFocusCapture={wake}
       className={`player-surface relative aspect-video w-full overflow-hidden bg-black ${hideCursor ? 'cursor-none' : ''} ${className}`}
     >
       <video
         ref={videoRef}
         playsInline
         onClick={togglePlay}
-        onDoubleClick={compact ? undefined : toggleFullscreen}
+        onDoubleClick={toggleFullscreen}
         className="h-full w-full"
       />
 
@@ -488,29 +474,27 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, nav
         </div>
       )}
 
-      {!compact && (
-        <PlayerChrome
-          show={show}
-          channel={channel}
-          topRight={topRight}
-          paused={paused}
-          isVod={isVod}
-          time={time}
-          total={total}
-          volume={volume}
-          muted={muted}
-          fullscreen={fullscreen}
-          navLabel={navLabel}
-          onPrev={onPrev}
-          onNext={onNext}
-          onTogglePlay={togglePlay}
-          onSeek={seek}
-          onVolume={(v) => setVolume(v)}
-          onToggleMute={toggleMute}
-          onToggleFullscreen={toggleFullscreen}
-          languageMenu={trackMenus ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
-        />
-      )}
+      <PlayerChrome
+        show={show}
+        channel={channel}
+        topRight={topRight}
+        paused={paused}
+        isVod={isVod}
+        time={time}
+        total={total}
+        volume={volume}
+        muted={muted}
+        fullscreen={fullscreen}
+        navLabel={navLabel}
+        onPrev={onPrev}
+        onNext={onNext}
+        onTogglePlay={togglePlay}
+        onSeek={seek}
+        onVolume={(v) => setVolume(v)}
+        onToggleMute={toggleMute}
+        onToggleFullscreen={toggleFullscreen}
+        languageMenu={trackMenus ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
+      />
 
       {message && (
         <div role="alert" className="absolute inset-0 grid place-items-center bg-black/80 p-6 text-center">
@@ -528,8 +512,6 @@ interface PlayerProps {
   channel: Channel | null
   autoplay?: boolean
   className?: string
-  layoutKey?: string
-  compact?: boolean
   onPrev?: () => void
   onNext?: () => void
   navLabel?: string
@@ -540,7 +522,7 @@ interface PlayerProps {
   trackMenus?: boolean
 }
 
-export function Player({ channel, autoplay = true, className = 'rounded-2xl border border-white/10', layoutKey, compact = false, onPrev, onNext, navLabel, topRight, wantFullscreen, onFullscreenHandled, onBack, trackMenus }: PlayerProps) {
+export function Player({ channel, autoplay = true, className = 'rounded-2xl border border-white/10', onPrev, onNext, navLabel, topRight, wantFullscreen, onFullscreenHandled, onBack, trackMenus }: PlayerProps) {
   if (!channel) {
     return (
       <div className="grid aspect-video w-full place-items-center rounded-2xl border border-dashed border-white/15 bg-black/40 p-6 text-center">
@@ -553,8 +535,8 @@ export function Player({ channel, autoplay = true, className = 'rounded-2xl bord
   }
   // Inside the C# app the picture comes from LibVLC and this page only draws the controls.
   if (IS_HOST) {
-    return <HostPlayer channel={channel} autoplay={autoplay} className={className} layoutKey={layoutKey} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} />
+    return <HostPlayer channel={channel} autoplay={autoplay} className={className} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} />
   }
   // No key on purpose: the same <video> and wrapper stay mounted for every channel, so full screen survives a channel change.
-  return <PlayerCore channel={channel} autoplay={autoplay} className={className} compact={compact} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} />
+  return <PlayerCore channel={channel} autoplay={autoplay} className={className} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} />
 }

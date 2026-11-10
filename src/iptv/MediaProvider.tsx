@@ -169,11 +169,25 @@ export function MediaProvider({ children }: { children: ReactNode }) {
     (c: Channel, options?: { fullscreen?: boolean }) => {
       setFullscreenPending(options?.fullscreen === true)
       setPlaying({ playlistId: active?.id ?? null, channel: c })
-      // "mini" is what it becomes when you leave an in-page player behind: it keeps playing in the corner.
-      setPlayerMode(inlineHost ? 'mini' : 'modal')
+      setPlayerMode(inlineHost ? 'inline' : 'modal')
     },
     [active, inlineHost],
   )
+
+  // What plays in the page ends with the page: leave Live TV or Favorites and the stream stops (there is no corner player).
+  // If the window only became too narrow for the in-page player, the stream carries on in the player window instead.
+  const onInlinePage = route.page === 'live' || route.page === 'favorites'
+  useEffect(() => {
+    if (playerMode !== 'inline' || inlineHost) return
+    const id = window.setTimeout(() => {
+      if (onInlinePage) setPlayerMode('modal')
+      else {
+        setPlaying(null)
+        setPlayerMode('closed')
+      }
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [playerMode, inlineHost, onInlinePage])
 
   const openItem = useCallback(
     (c: Channel, list?: Channel[]) => {
@@ -239,8 +253,6 @@ export function MediaProvider({ children }: { children: ReactNode }) {
     inlineHost,
     inlineSlot,
     setInlineSlot,
-    minimizePlayer: () => setPlayerMode((m) => (m === 'modal' ? 'mini' : m)),
-    expandPlayer: () => setPlayerMode((m) => (m === 'mini' ? 'modal' : m)),
     stopPlayer: () => {
       setPlaying(null)
       setPlayerMode('closed')

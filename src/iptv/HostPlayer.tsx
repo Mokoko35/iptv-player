@@ -14,10 +14,6 @@ interface Props {
   channel: Channel
   autoplay: boolean
   className: string
-  /** Changes whenever the player window is moved or resized from outside; the new place is sent to C# at once. */
-  layoutKey?: string
-  /** Corner mini player: no control bar, a click pauses and plays. */
-  compact: boolean
   onPrev?: () => void
   onNext?: () => void
   navLabel?: string
@@ -33,7 +29,7 @@ interface Props {
  * is an empty, transparent window onto it. It tells C# what to play and where the video area is, and shows the
  * controls on top. See docs/HOST-BRIDGE.md.
  */
-export function HostPlayer({ channel, autoplay, className, layoutKey, compact, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false }: Props) {
+export function HostPlayer({ channel, autoplay, className, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false }: Props) {
   const host = useHostState()
   const wrapRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<number | undefined>(undefined)
@@ -69,9 +65,6 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
     [],
   )
 
-  // The small player floats above the page when C# can draw the video there; everything else is behind the page.
-  const layer = compact && host.frontLayer ? 'front' : 'back'
-  const measureNow = useRef<() => void>(() => undefined)
 
   /* Tell C# where the video area is. ------------------------------------------------------------------------- */
   useEffect(() => {
@@ -79,9 +72,8 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
     if (!el) return
     const measure = () => {
       const r = el.getBoundingClientRect()
-      setVideoRect({ x: r.left, y: r.top, width: r.width, height: r.height, layer })
+      setVideoRect({ x: r.left, y: r.top, width: r.width, height: r.height })
     }
-    measureNow.current = measure
     const observer = new ResizeObserver(measure) // also runs once right away
     observer.observe(el)
     window.addEventListener('resize', measure)
@@ -94,9 +86,7 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
       window.removeEventListener('scroll', measure, true)
       window.clearInterval(poll)
     }
-  }, [compact, fullscreen, layer])
-  // The free small player moves with the mouse: its new place goes to C# immediately, not at the next poll.
-  useEffect(() => measureNow.current(), [layoutKey])
+  }, [fullscreen])
 
   /* Ask for the audio and subtitle tracks. LibVLC only finds them a moment after it starts playing, so a single message
      sent at the "Playing" event is often empty or never sent. Asking again a few times is cheap and always works. ---- */
@@ -127,12 +117,11 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
   useEffect(() => {
     const id = window.setTimeout(wake, 0)
     return () => window.clearTimeout(id)
-  }, [compact, fullscreen, wake])
+  }, [fullscreen, wake])
 
   // Any mouse movement over the video area brings the controls back, wherever the event lands: the check is on the position,
   // not on which element received the event, so a layer above the player cannot hide the movement from it.
   useEffect(() => {
-    if (compact) return
     let lastLog = 0
     const onMove = (e: Event) => {
       const el = wrapRef.current
@@ -152,7 +141,7 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
     return () => {
       for (const name of events) document.removeEventListener(name, onMove)
     }
-  }, [compact, wake])
+  }, [wake])
 
   // C# can also report mouse movement over the video itself (see docs/HOST-BRIDGE.md, "activity").
   useEffect(() => {
@@ -182,14 +171,9 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
   // A film asked to start full screen.
   useEffect(() => {
     if (!wantFullscreen) return
-    if (!compact) setHostFullscreen(true)
+    setHostFullscreen(true)
     onFullscreenHandled?.()
-  }, [wantFullscreen, compact, onFullscreenHandled])
-
-  // Shrinking to the corner leaves full screen, so the controls never vanish while the window stays full.
-  useEffect(() => {
-    if (compact && hostSnapshot().fullscreen) setHostFullscreen(false)
-  }, [compact])
+  }, [wantFullscreen, onFullscreenHandled])
 
   /* Audio and subtitles come from LibVLC. -------------------------------------------------------------------- */
   // LibVLC lists a "disabled" entry with id -1 for each; the menu has its own "Kapalı", so leave it out.
@@ -216,7 +200,6 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
 
   /* Keyboard: ← → change channel (or skip 10 s), space pauses, M mutes, F full screen, Esc leaves full screen. -- */
   useEffect(() => {
-    if (compact) return
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return
@@ -240,30 +223,30 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
     }
     window.addEventListener('keydown', onKey, true) // capture: runs before the window's own Escape handling
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [compact, onPrev, onNext, seek, togglePlay, toggleMute, toggleFullscreen, wake])
+  }, [onPrev, onNext, seek, togglePlay, toggleMute, toggleFullscreen, wake])
 
   const message = host.error
-  const show = !compact && (awake || host.paused || message !== null || menuOpen)
-  const hideCursor = !compact && !show && !host.paused
+  const show = awake || host.paused || message !== null || menuOpen
+  const hideCursor = !show && !host.paused
 
   return (
     <div
       ref={wrapRef}
       onContextMenu={(e) => {
         // Right-click on the full screen picture is "back".
-        if (!onBack || compact || !hostSnapshot().fullscreen) return
+        if (!onBack || !hostSnapshot().fullscreen) return
         e.preventDefault()
         onBack()
       }}
-      onPointerMove={compact ? undefined : wake}
-      onMouseMove={compact ? undefined : wake}
-      onPointerDown={compact ? undefined : wake}
-      onFocusCapture={compact ? undefined : wake}
+      onPointerMove={wake}
+      onMouseMove={wake}
+      onPointerDown={wake}
+      onFocusCapture={wake}
       // Transparent on purpose: the video is behind this element. In full screen it covers the whole page.
       className={`player-surface bg-transparent ${fullscreen ? 'fixed inset-0 z-[100] h-screen w-screen' : 'relative aspect-video w-full overflow-hidden'} ${hideCursor ? 'cursor-none' : ''} ${className}`}
     >
       {/* The click target over the picture (the controls sit above it). */}
-      <div className="absolute inset-0" onClick={togglePlay} onDoubleClick={compact ? undefined : toggleFullscreen} />
+      <div className="absolute inset-0" onClick={togglePlay} onDoubleClick={toggleFullscreen} />
 
       {host.buffering && !message && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
@@ -271,30 +254,29 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
         </div>
       )}
 
-      {!compact && (
-        <PlayerChrome
-          show={show}
-          channel={channel}
-          topRight={topRight}
-          paused={host.paused}
-          isVod={isVod}
-          time={host.time}
-          total={host.duration}
-          volume={volume}
-          muted={muted}
-          fullscreen={fullscreen}
-          navLabel={navLabel}
-          onPrev={onPrev}
-          onNext={onNext}
-          onTogglePlay={togglePlay}
-          onSeek={seek}
-          onVolume={(v) => changeVolume(v)}
-          onToggleMute={toggleMute}
-          onToggleFullscreen={toggleFullscreen}
-          // Films and episodes always have the menu; a live channel gets it when LibVLC found extra audio or subtitles.
-          languageMenu={trackMenus || audio.length > 1 || subs.length > 0 ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
-        />
-      )}
+      <PlayerChrome
+        show={show}
+        channel={channel}
+        topRight={topRight}
+        paused={host.paused}
+        isVod={isVod}
+        time={host.time}
+        total={host.duration}
+        volume={volume}
+        muted={muted}
+        fullscreen={fullscreen}
+        navLabel={navLabel}
+        onPrev={onPrev}
+        onNext={onNext}
+        onTogglePlay={togglePlay}
+        onSeek={seek}
+        onVolume={(v) => changeVolume(v)}
+        onToggleMute={toggleMute}
+        onToggleFullscreen={toggleFullscreen}
+        // Films and episodes always have the menu; a live channel gets it when LibVLC found extra audio or subtitles.
+        languageMenu={trackMenus || audio.length > 1 || subs.length > 0 ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
+      />
+
 
       {message && (
         <div role="alert" className="absolute inset-0 grid place-items-center bg-black/80 p-6 text-center">

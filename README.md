@@ -8,7 +8,7 @@ Built with [Arc Studio](https://studio.arc.io)
 
 - **Add lists several ways:** M3U address, portal login (server, username, password), `.m3u` / `.m3u8` file, or pasted text. Keep several lists and switch between them.
 - **Live TV, Movies and Series** in separate sections: full-width card grids with their own full-height category panel beside them (All, Favorites, then each category), a title that shows where you are (for example `Movies > Action`), search and favorites. The category panel works the same whether the main menu is open or collapsed.
-- **Player window and mini player:** clicking a channel, movie or episode opens a large player window. Close it and the stream keeps playing in a small floating player while you keep browsing. Drag the player by its title bar anywhere in the window, resize it from its corner (or with Shift and the arrow keys), and double-click the title bar to put it back in the corner; it remembers where you left it.
+- **Player window:** clicking a channel, movie or episode opens a large player window. Closing it stops the stream; there is no small floating player. On Live TV and Favorites the video plays in the page itself, and leaving those pages stops it.
 - **Real movie and series details** from Xtream portals: poster, synopsis, cast, director, rating, trailer link, and seasons with episodes.
 - **Category manager:** show or hide categories per section.
 - **Category order:** in the category manager, move any category to the top, up one, down one or to the bottom, and tick which ones to show. The category list follows the saved order and visibility.

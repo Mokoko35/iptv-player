@@ -379,41 +379,8 @@ html[data-host] .theme-media {
 /* C# app: the video is drawn behind the page, so no page pixel may cover it.
    - Player window open, or full screen: the page is hidden (visibility keeps the layout, so the page is exactly as it was
      when the player closes).
-   - Small player docked: the page keeps working and simply does not use the strip on the right, where the small player
-     sits. Nothing overlaps, so there is nothing to clip and no extra drawing work. On a very narrow window there is no room
-     for a strip, and the page is hidden like in the player window. */
+   Closing the player window stops the stream, so the page is never left with a video behind it. */
 html[data-player-mode='modal'] #root,
 html[data-fullscreen] #root {
   visibility: hidden;
-}
-@media (min-width: 640px) {
-  html[data-player-mode='mini'] #root {
-    padding-right: 22.5rem;
-  }
-}
-@media (max-width: 639px) {
-  html[data-player-mode='mini'] #root {
-    visibility: hidden;
-  }
-}
-
-/* C# app: the page is drawn transparent, over a native video, by WebView2. Blurring what is behind an element is the one
-   effect it cannot afford there (a single paint took seconds), so that stays off, together with the decorative blurred
-   glows and endless animations (the loading spinner still turns). Hover growth, soft shadows and transitions on the cards
-   are on, as in the browser. */
-html[data-host] *,
-html[data-host] *::before,
-html[data-host] *::after {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-html[data-host] *:not(.animate-spin),
-html[data-host] *:not(.animate-spin)::before,
-html[data-host] *:not(.animate-spin)::after {
-  animation: none !important;
-}
-html[data-host] .blur-sm,
-html[data-host] .blur-2xl,
-html[data-host] .blur-3xl {
-  display: none !important;
 }

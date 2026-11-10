@@ -1,4 +1,4 @@
-import { Heart, Minimize2, Power, SkipBack, SkipForward } from 'lucide-react'
+import { Heart, Power, SkipBack, SkipForward } from 'lucide-react'
 import { EpgTimeline } from './EpgTimeline'
 import { KIND_BADGE, groupOf, kindOf } from './kinds'
 import type { Channel } from './types'
@@ -10,8 +10,8 @@ const DESCRIPTION = {
 } as const
 
 /** Title, actions and the program guide for whatever is playing. Used under the player window and in the Live TV page. */
-export function NowPlayingInfo({ channel, windowed }: { channel: Channel; windowed: boolean }) {
-  const { isFavorite, toggleFavorite, lists, epg, channelNav, minimizePlayer, stopPlayer } = useMedia()
+export function NowPlayingInfo({ channel }: { channel: Channel }) {
+  const { isFavorite, toggleFavorite, lists, epg, channelNav, stopPlayer } = useMedia()
   const kind = kindOf(channel)
   const fav = isFavorite(channel)
 
@@ -47,11 +47,6 @@ export function NowPlayingInfo({ channel, windowed }: { channel: Channel; window
           <Heart size={16} fill={fav ? 'currentColor' : 'none'} aria-hidden="true" />
           {fav ? 'Favorilerde' : 'Favorilere ekle'}
         </button>
-        {windowed && (
-          <button type="button" onClick={minimizePlayer} className="btn-ghost">
-            <Minimize2 size={16} aria-hidden="true" /> Küçült
-          </button>
-        )}
         <button type="button" onClick={stopPlayer} className="btn-ghost hover:!text-danger">
           <Power size={16} aria-hidden="true" /> Yayını kapat
         </button>

@@ -54,7 +54,7 @@ export type HostCommand =
   /** A subtitle file the user chose (.srt or .vtt), as text. */
   | { cmd: 'addSubtitle'; name: string; text: string }
   /** Where the video should be drawn, in CSS pixels of the page. `visible: false` hides the video. */
-  | { cmd: 'layout'; x: number; y: number; width: number; height: number; dpr: number; visible: boolean; radius: number; layer: 'back' | 'front' }
+  | { cmd: 'layout'; x: number; y: number; width: number; height: number; dpr: number; visible: boolean; radius: number }
   /** Make the window full screen (the video area then fills the page). */
   | { cmd: 'fullscreen'; on: boolean }
 
@@ -76,8 +76,6 @@ export interface HostTrack {
 export interface HostState {
   /** C# has answered with `hello`. */
   connected: boolean
-  /** `hello` said C# can draw the video above the page (layout `layer: 'front'`), which lets the small player float freely. */
-  frontLayer: boolean
   paused: boolean
   buffering: boolean
   /** Seconds. */
@@ -97,7 +95,6 @@ export interface HostState {
 
 export const INITIAL_HOST_STATE: HostState = {
   connected: false,
-  frontLayer: false,
   paused: true,
   buffering: false,
   time: 0,
@@ -147,7 +144,7 @@ export function reduceHost(state: HostState, data: unknown): HostState {
   if (!isRec(msg)) return state
   switch (msg.evt) {
     case 'hello':
-      return { ...state, connected: true, frontLayer: bool(msg.frontLayer) ?? false }
+      return { ...state, connected: true }
     case 'state':
       return {
         ...state,
@@ -247,8 +244,6 @@ export interface VideoRect {
   y: number
   width: number
   height: number
-  /** 'front': draw the video above the page (the free small player). Default 'back': behind the page. */
-  layer?: 'back' | 'front'
 }
 
 let rect: VideoRect | null = null
@@ -258,12 +253,12 @@ const VIDEO_RADIUS = 6
 
 /** Remembers the video area and tells C# where to draw the picture. Pass null when there is no video. */
 export function setVideoRect(next: VideoRect | null): void {
-  const same = rect === next || (rect && next && rect.x === next.x && rect.y === next.y && rect.width === next.width && rect.height === next.height && rect.layer === next.layer)
+  const same = rect === next || (rect && next && rect.x === next.x && rect.y === next.y && rect.width === next.width && rect.height === next.height)
   if (same) return
   rect = next
   rectListeners.forEach((l) => l())
-  if (next) send({ cmd: 'layout', x: next.x, y: next.y, width: next.width, height: next.height, dpr: window.devicePixelRatio || 1, visible: true, radius: VIDEO_RADIUS, layer: next.layer ?? 'back' })
-  else send({ cmd: 'layout', x: 0, y: 0, width: 0, height: 0, dpr: window.devicePixelRatio || 1, visible: false, radius: 0, layer: 'back' })
+  if (next) send({ cmd: 'layout', x: next.x, y: next.y, width: next.width, height: next.height, dpr: window.devicePixelRatio || 1, visible: true, radius: VIDEO_RADIUS })
+  else send({ cmd: 'layout', x: 0, y: 0, width: 0, height: 0, dpr: window.devicePixelRatio || 1, visible: false, radius: 0 })
 }
 
 const subscribeRect = (l: () => void) => {

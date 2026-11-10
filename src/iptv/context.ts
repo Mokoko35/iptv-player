@@ -17,7 +17,7 @@ export interface ChannelNav {
   step: (delta: -1 | 1) => void
 }
 
-export type PlayerMode = 'closed' | 'modal' | 'mini'
+export type PlayerMode = 'closed' | 'modal' | 'inline'
 
 export interface Media {
   lists: PlaylistsState
@@ -60,9 +60,6 @@ export interface Media {
   /** The empty box in the page that the inline player is drawn over. */
   inlineSlot: HTMLElement | null
   setInlineSlot: (el: HTMLElement | null) => void
-  /** Shrinks the player to the corner so you can keep browsing while it plays. */
-  minimizePlayer: () => void
-  expandPlayer: () => void
   /** Stops playback and removes the player. */
   stopPlayer: () => void
   /** Countries found in the list, with their channel counts. Empty when no channel has a country. */

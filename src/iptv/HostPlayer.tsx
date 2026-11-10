@@ -7,6 +7,8 @@ import { PlayerChrome } from './PlayerChrome'
 import { type TrackInfo, decodeSubtitle } from './tracks'
 import type { Channel } from './types'
 import type { NowNext } from './xmltv'
+import { AspectMenu } from './AspectMenu'
+import type { AspectMode } from './prefs'
 import { loadVolume, saveVolume } from './volume'
 
 const HIDE_AFTER_MS = 3000
@@ -27,6 +29,9 @@ interface Props {
   guide?: NowNext | null
   /** How long the controls stay after the last activity, in milliseconds. */
   hideAfterMs?: number
+  /** The picture shape. 'fit' keeps the film's own shape. */
+  aspect?: AspectMode
+  onAspect?: (mode: AspectMode) => void
 }
 
 /**
@@ -34,7 +39,7 @@ interface Props {
  * is an empty, transparent window onto it. It tells C# what to play and where the video area is, and shows the
  * controls on top. See docs/HOST-BRIDGE.md.
  */
-export function HostPlayer({ channel, autoplay, className, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false, guide = null, hideAfterMs = HIDE_AFTER_MS }: Props) {
+export function HostPlayer({ channel, autoplay, className, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false, guide = null, hideAfterMs = HIDE_AFTER_MS, aspect = 'fit', onAspect }: Props) {
   const host = useHostState()
   const wrapRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<number | undefined>(undefined)
@@ -56,10 +61,16 @@ export function HostPlayer({ channel, autoplay, className, onPrev, onNext, navLa
       volume,
       muted,
       subtitles: channel.subtitleTracks ?? [],
+      aspect,
     })
     // Only a different address restarts playback; the volume and the rest are sent by their own controls.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel.url])
+
+  // The picture shape goes to C# with `play`, and again whenever it changes.
+  useEffect(() => {
+    send({ cmd: 'aspect', mode: aspect })
+  }, [aspect])
 
   useEffect(
     () => () => {
@@ -280,6 +291,7 @@ export function HostPlayer({ channel, autoplay, className, onPrev, onNext, navLa
         onToggleFullscreen={toggleFullscreen}
         // Films and episodes always have the menu; a live channel gets it when LibVLC found extra audio or subtitles.
         guide={guide}
+        aspectMenu={onAspect ? <AspectMenu value={aspect} onChange={onAspect} forced onOpenChange={setMenuOpen} /> : undefined}
         languageMenu={trackMenus || audio.length > 1 || subs.length > 0 ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
       />
 

@@ -33,11 +33,16 @@ export interface HostSubtitleSource {
   lang?: string
 }
 
+/** 'fit': the video's own shape, bars where needed. 'fill': fill the rectangle, crop the rest. 'stretch': fill it, distort. '16:9' / '4:3': force that shape (fitted inside the rectangle). */
+export type HostAspect = 'fit' | 'fill' | 'stretch' | '16:9' | '4:3'
+
 export type HostCommand =
   /** The page has loaded and is listening. C# answers with `hello`. */
   | { cmd: 'ready'; version: number }
   /** Start (or replace) what is playing. */
-  | { cmd: 'play'; url: string; title: string; kind: 'live' | 'movie' | 'series'; autoplay: boolean; volume: number; muted: boolean; subtitles: HostSubtitleSource[] }
+  | { cmd: 'play'; url: string; title: string; kind: 'live' | 'movie' | 'series'; autoplay: boolean; volume: number; muted: boolean; subtitles: HostSubtitleSource[]; aspect: HostAspect }
+  /** How the picture fills its rectangle. Sent with `play` and whenever the user changes it. */
+  | { cmd: 'aspect'; mode: HostAspect }
   | { cmd: 'stop' }
   /** Please send a `tracks` event now. The page asks a few times after `play`, because LibVLC finds the tracks a moment after it starts playing. */
   | { cmd: 'tracks' }

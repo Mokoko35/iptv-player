@@ -53,3 +53,4 @@ bun run dev      # http://localhost:5173
 bun run check    # lint and typecheck
 bun run build
 ```
+- Full screen on a live channel: `PlayerChrome` draws `GuideBand` (program name, time left / length, progress bar) under the controls, fed by `epg.nowNext` through `PlayerOverlay` (`guide`). The controls' hide delay is `prefs.epgSeconds` (3-10 s, default 5) there and 3 s everywhere else (`hideAfterMs`). Not shown for films and episodes.

@@ -7,6 +7,7 @@ import { IS_HOST } from './host'
 import { loadVolume, saveVolume } from './volume'
 import { EMPTY_TRACKS, type TrackInfo, labelFor, loadSubtitle, subtitleFromFile } from './tracks'
 import type { Channel, SubtitleSource } from './types'
+import type { NowNext } from './xmltv'
 
 type Engine = 'hls' | 'ts' | 'native'
 const NO_SOURCES: SubtitleSource[] = []
@@ -88,9 +89,13 @@ interface CoreProps {
   onBack?: () => void
   /** Show the audio language and subtitle menus (films and episodes). */
   trackMenus?: boolean
+  /** What is on now and next (a live channel). In full screen the controls get a thin program band. */
+  guide?: NowNext | null
+  /** How long the controls stay after the last activity, in milliseconds. */
+  hideAfterMs?: number
 }
 
-function PlayerCore({ channel, autoplay, className, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false }: CoreProps) {
+function PlayerCore({ channel, autoplay, className, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false, guide = null, hideAfterMs = HIDE_AFTER_MS }: CoreProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<number | undefined>(undefined)
@@ -117,8 +122,8 @@ function PlayerCore({ channel, autoplay, className, onPrev, onNext, navLabel, to
   // Controls appear on any activity and go away after three seconds of none.
   const arm = useCallback(() => {
     window.clearTimeout(hideTimer.current)
-    hideTimer.current = window.setTimeout(() => setAwake(false), HIDE_AFTER_MS)
-  }, [])
+    hideTimer.current = window.setTimeout(() => setAwake(false), hideAfterMs)
+  }, [hideAfterMs])
   const wake = useCallback(() => {
     setAwake(true)
     arm()
@@ -493,6 +498,7 @@ function PlayerCore({ channel, autoplay, className, onPrev, onNext, navLabel, to
         onVolume={(v) => setVolume(v)}
         onToggleMute={toggleMute}
         onToggleFullscreen={toggleFullscreen}
+        guide={guide}
         languageMenu={trackMenus ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
       />
 
@@ -520,9 +526,13 @@ interface PlayerProps {
   onFullscreenHandled?: () => void
   onBack?: () => void
   trackMenus?: boolean
+  /** What is on now and next (a live channel). In full screen the controls get a thin program band. */
+  guide?: NowNext | null
+  /** How long the controls stay after the last activity, in milliseconds. */
+  hideAfterMs?: number
 }
 
-export function Player({ channel, autoplay = true, className = 'rounded-2xl border border-white/10', onPrev, onNext, navLabel, topRight, wantFullscreen, onFullscreenHandled, onBack, trackMenus }: PlayerProps) {
+export function Player({ channel, autoplay = true, className = 'rounded-2xl border border-white/10', onPrev, onNext, navLabel, topRight, wantFullscreen, onFullscreenHandled, onBack, trackMenus, guide, hideAfterMs }: PlayerProps) {
   if (!channel) {
     return (
       <div className="grid aspect-video w-full place-items-center rounded-2xl border border-dashed border-white/15 bg-black/40 p-6 text-center">
@@ -535,8 +545,8 @@ export function Player({ channel, autoplay = true, className = 'rounded-2xl bord
   }
   // Inside the C# app the picture comes from LibVLC and this page only draws the controls.
   if (IS_HOST) {
-    return <HostPlayer channel={channel} autoplay={autoplay} className={className} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} />
+    return <HostPlayer channel={channel} autoplay={autoplay} className={className} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} guide={guide} hideAfterMs={hideAfterMs} />
   }
   // No key on purpose: the same <video> and wrapper stay mounted for every channel, so full screen survives a channel change.
-  return <PlayerCore channel={channel} autoplay={autoplay} className={className} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} />
+  return <PlayerCore channel={channel} autoplay={autoplay} className={className} onPrev={onPrev} onNext={onNext} navLabel={navLabel} topRight={topRight} wantFullscreen={wantFullscreen} onFullscreenHandled={onFullscreenHandled} onBack={onBack} trackMenus={trackMenus} guide={guide} hideAfterMs={hideAfterMs} />
 }

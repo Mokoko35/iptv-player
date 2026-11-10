@@ -6,6 +6,7 @@ import { LanguageMenu } from './LanguageMenu'
 import { PlayerChrome } from './PlayerChrome'
 import { type TrackInfo, decodeSubtitle } from './tracks'
 import type { Channel } from './types'
+import type { NowNext } from './xmltv'
 import { loadVolume, saveVolume } from './volume'
 
 const HIDE_AFTER_MS = 3000
@@ -22,6 +23,10 @@ interface Props {
   onFullscreenHandled?: () => void
   onBack?: () => void
   trackMenus?: boolean
+  /** What is on now and next (a live channel). In full screen the controls get a thin program band. */
+  guide?: NowNext | null
+  /** How long the controls stay after the last activity, in milliseconds. */
+  hideAfterMs?: number
 }
 
 /**
@@ -29,7 +34,7 @@ interface Props {
  * is an empty, transparent window onto it. It tells C# what to play and where the video area is, and shows the
  * controls on top. See docs/HOST-BRIDGE.md.
  */
-export function HostPlayer({ channel, autoplay, className, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false }: Props) {
+export function HostPlayer({ channel, autoplay, className, onPrev, onNext, navLabel, topRight, wantFullscreen = false, onFullscreenHandled, onBack, trackMenus = false, guide = null, hideAfterMs = HIDE_AFTER_MS }: Props) {
   const host = useHostState()
   const wrapRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<number | undefined>(undefined)
@@ -104,8 +109,8 @@ export function HostPlayer({ channel, autoplay, className, onPrev, onNext, navLa
   /* Controls that hide after three seconds. ------------------------------------------------------------------ */
   const arm = useCallback(() => {
     window.clearTimeout(hideTimer.current)
-    hideTimer.current = window.setTimeout(() => setAwake(false), HIDE_AFTER_MS)
-  }, [])
+    hideTimer.current = window.setTimeout(() => setAwake(false), hideAfterMs)
+  }, [hideAfterMs])
   const wake = useCallback(() => {
     setAwake(true)
     arm()
@@ -274,6 +279,7 @@ export function HostPlayer({ channel, autoplay, className, onPrev, onNext, navLa
         onToggleMute={toggleMute}
         onToggleFullscreen={toggleFullscreen}
         // Films and episodes always have the menu; a live channel gets it when LibVLC found extra audio or subtitles.
+        guide={guide}
         languageMenu={trackMenus || audio.length > 1 || subs.length > 0 ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
       />
 

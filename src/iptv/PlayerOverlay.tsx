@@ -21,7 +21,7 @@ interface Box {
  * Closing the window, or leaving Live TV / Favorites, stops the stream. There is no small corner player.
  */
 export function PlayerOverlay() {
-  const { current, playerMode, inlineHost, inlineSlot, stopPlayer, prefs, channelNav, fullscreenPending, fullscreenHandled, route } = useMedia()
+  const { current, playerMode, inlineHost, inlineSlot, stopPlayer, prefs, channelNav, fullscreenPending, fullscreenHandled, route, epg } = useMedia()
   // A player that was in the page stays on screen as a window if the window just got too narrow for the page player, and is
   // gone as soon as you leave Live TV / Favorites.
   const onInlinePage = route.page === 'live' || route.page === 'favorites'
@@ -40,6 +40,9 @@ export function PlayerOverlay() {
   }, [])
   const isFull = IS_HOST ? hostFull : domFull
   const vod = current !== null && kindOf(current) !== 'live'
+  // Full screen on a live channel gets a thin program band with the controls, and both stay for the time set in Settings.
+  const guide = current !== null && !vod ? epg.nowNext(current) : null
+  const hideAfterMs = isFull && !vod ? prefs.epgSeconds * 1000 : undefined
   // "Back": leave full screen first, then close and stop.
   const goBack = () => {
     if (IS_HOST) setHostFullscreen(false)
@@ -98,6 +101,8 @@ export function PlayerOverlay() {
       channel={current}
       autoplay={prefs.autoplay}
       className={IS_HOST && inline ? 'rounded-none !aspect-auto h-full' : 'rounded-none'}
+      guide={guide}
+      hideAfterMs={hideAfterMs}
       wantFullscreen={fullscreenPending}
       onFullscreenHandled={fullscreenHandled}
       onPrev={channelNav ? () => channelNav.step(-1) : undefined}

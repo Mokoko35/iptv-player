@@ -1,3 +1,4 @@
+import { DownloadTray } from './iptv/DownloadTray'
 import { AddPlaylistDialog } from './iptv/AddPlaylistDialog'
 import { ActivityPill } from './iptv/ActivityPill'
 import { BrowsePage } from './iptv/BrowsePage'
@@ -45,6 +46,7 @@ function Shell() {
       <DetailDialog />
       <PlayerOverlay />
       <ActivityPill />
+      <DownloadTray />
       <Splash />
     </div>
   )

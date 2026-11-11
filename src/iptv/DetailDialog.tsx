@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Clapperboard, ExternalLink, Heart, Loader2, Play, Star, X } from 'lucide-react'
 import { PosterArt } from './Cards'
+import { DownloadButton } from './DownloadButton'
 import { groupOf } from './kinds'
 import { loadErrorText } from './load'
 import type { Channel, XtreamLogin } from './types'
@@ -182,6 +183,7 @@ function MovieDetail({ channel, login, playlistId }: { channel: Channel; login: 
             <Play size={16} fill="currentColor" aria-hidden="true" /> Oynat
           </button>
           <FavoriteAction channel={channel} />
+          <DownloadButton channel={channel} />
           <TrailerAction url={details?.trailer} />
         </>
       }
@@ -193,14 +195,14 @@ function MovieDetail({ channel, login, playlistId }: { channel: Channel; login: 
 /* Series                                                              */
 /* ------------------------------------------------------------------ */
 
-function EpisodeRow({ ep, poster, playing, onPlay }: { ep: Episode; poster?: string; playing: boolean; onPlay: () => void }) {
+function EpisodeRow({ ep, poster, playing, onPlay, download }: { ep: Episode; poster?: string; playing: boolean; onPlay: () => void; download: Channel }) {
   return (
-    <li>
+    <li className="relative">
       <button
         type="button"
         onClick={onPlay}
         aria-label={`Sezon ${ep.season} bölüm ${ep.number}: ${ep.title} oynat`}
-        className={`group flex w-full items-center gap-4 rounded-2xl border p-3 text-left transition hover:bg-white/5 ${playing ? 'border-accent bg-accent/10' : 'border-white/10'}`}
+        className={`group flex w-full items-center gap-4 rounded-2xl border p-3 pr-14 text-left transition hover:bg-white/5 ${playing ? 'border-accent bg-accent/10' : 'border-white/10'}`}
       >
         <span className="relative hidden h-16 w-28 shrink-0 sm:block">
           <PosterArt key={ep.image ?? poster ?? ep.id} name={`${ep.number}`} src={ep.image ?? poster} className="h-full w-full rounded-xl" />
@@ -225,6 +227,8 @@ function EpisodeRow({ ep, poster, playing, onPlay }: { ep: Episode; poster?: str
           )}
         </span>
       </button>
+      {/* Not inside the button above: a button cannot hold a button. */}
+      <DownloadButton channel={download} compact className="absolute right-2 top-1/2 -translate-y-1/2" />
     </li>
   )
 }
@@ -293,7 +297,7 @@ function SeriesDetailView({ channel, login, playlistId, seriesId }: { channel: C
             </div>
             <ul className="space-y-2" aria-label="Bölümler">
               {episodes.map((ep) => (
-                <EpisodeRow key={ep.id} ep={ep} poster={data.poster ?? channel.logo} playing={current?.url === ep.url} onPlay={() => playEpisode(ep)} />
+                <EpisodeRow key={ep.id} ep={ep} poster={data.poster ?? channel.logo} playing={current?.url === ep.url} onPlay={() => playEpisode(ep)} download={episodeChannel({ ...channel, description: data.plot ?? channel.description }, ep, data.poster ?? channel.logo)} />
               ))}
             </ul>
           </>

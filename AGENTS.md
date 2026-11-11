@@ -54,3 +54,4 @@ bun run check    # lint and typecheck
 bun run build
 ```
 - Full screen on a live channel: `PlayerChrome` draws `GuideBand` (program name, time left / length, progress bar) under the controls, fed by `epg.nowNext` through `PlayerOverlay` (`guide`). The controls' hide delay is `prefs.epgSeconds` (3-10 s, default 5) there and 3 s everywhere else (`hideAfterMs`). Not shown for films and episodes.
+- Downloads: `downloads.ts` is the store (matched by title, finished ones kept in local storage); `DownloadButton.tsx`, `DownloadTray.tsx` (corner notices) and `DownloadsTab.tsx` (Settings, İndirilenler) are the UI. C# does the work; the commands are `download`, `cancelDownload`, `openFolder` and the events `downloadProgress`, `downloadComplete`, `downloadError` (see `docs/HOST-BRIDGE.md`). Outside the C# app (`IS_HOST` false) the buttons are disabled.

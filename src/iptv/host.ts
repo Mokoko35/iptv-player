@@ -62,6 +62,11 @@ export type HostCommand =
   | { cmd: 'layout'; x: number; y: number; width: number; height: number; dpr: number; visible: boolean; radius: number }
   /** Make the window full screen (the video area then fills the page). */
   | { cmd: 'fullscreen'; on: boolean }
+  /** Download a film or episode to the device. Progress comes back as `downloadProgress`, `downloadComplete` or `downloadError`, matched by `title`. */
+  | { cmd: 'download'; url: string; title: string }
+  | { cmd: 'cancelDownload'; title: string }
+  /** Show a downloaded file in Explorer (open its folder). `path` is what `downloadComplete` reported. */
+  | { cmd: 'openFolder'; path: string }
 
 export function send(command: HostCommand): void {
   webview()?.postMessage(command)
@@ -221,12 +226,36 @@ export const useHostState = (): HostState => useSyncExternalStore(subscribe, () 
 
 let started = false
 /** Call once when the page starts. Does nothing outside the C# app. */
+const messageListeners = new Set<(message: Record<string, unknown>) => void>()
+
+/** Hears every message from C# as a plain object, whatever it is about. Modules with their own events (downloads) use this. */
+export function onHostMessage(listener: (message: Record<string, unknown>) => void): () => void {
+  messageListeners.add(listener)
+  return () => messageListeners.delete(listener)
+}
+
+function asMessage(data: unknown): Record<string, unknown> | null {
+  let msg = data
+  if (typeof msg === 'string') {
+    try {
+      msg = JSON.parse(msg)
+    } catch {
+      return null
+    }
+  }
+  return isRec(msg) ? msg : null
+}
+
 export function startHost(): void {
   const wv = webview()
   if (!wv || started) return
   started = true
   document.documentElement.dataset.host = 'webview' // switches the page background to transparent (see index.css)
-  wv.addEventListener('message', (event) => set(reduceHost(current, event.data)))
+  wv.addEventListener('message', (event) => {
+    const message = asMessage(event.data)
+    if (message) messageListeners.forEach((listener) => listener(message))
+    set(reduceHost(current, event.data))
+  })
   send({ cmd: 'ready', version: PROTOCOL_VERSION })
 }
 

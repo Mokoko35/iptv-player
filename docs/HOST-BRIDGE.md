@@ -78,6 +78,36 @@ C# with `aspect`:
 `aspect` also comes inside `play`, so the first frame of a new film is already right. It applies to the current picture and
 to the next ones.
 
+## Downloads (offline viewing)
+
+C# does the downloading; the page only starts it, shows the progress and lists the files. Downloads are matched by
+**`title`** (the page uses the film's or episode's name, which is unique per episode), so C# must echo the same `title`.
+
+Page → C#:
+
+| `cmd` | Fields | What to do |
+|---|---|---|
+| `download` | `url`, `title` | Download `url` to `%USERPROFILE%\Videos\IPTV_Indirmeler\` (make a safe file name from `title`, keep the extension of `url`). The page starts showing "İndiriliyor" at once. |
+| `cancelDownload` | `title` | Stop that download and delete the partial file. |
+| `openFolder` | `path` | Show the file in Explorer (`explorer /select,"path"`), or open its folder. `path` is what `downloadComplete` reported. |
+
+C# → page:
+
+| `evt` | Fields |
+|---|---|
+| `downloadProgress` | `title`, `progress` (0 to 100); optional `received`, `total` (bytes) |
+| `downloadComplete` | `title`, `path` (full path of the file); optional `size` (bytes, shown in the list) |
+| `downloadError` | `title`, `error` (shown to the user) |
+
+Send `downloadProgress` a few times a second at most (every 1 to 2 percent is plenty). Several downloads can run at once.
+The finished list is kept by the page (in local storage) and shown in Settings, İndirilenler: title, size, a **Oynat**
+button, **Klasörü Aç** (`openFolder`) and a button that removes the entry from the list (the file is not deleted).
+
+**Oynat** plays the file through the normal `play` command with a `file:///` URL
+(for example `file:///C:/Users/Ad%20Soyad/Videos/IPTV_Indirmeler/Film.mkv`), so `play` must accept a file URL: build the
+`Media` from `new Uri(url)` (or `FromType.FromLocation`), not from a path. In a browser the download buttons are shown
+switched off ("Bu özellik sadece uygulamada çalışır").
+
 ## Audio and subtitle tracks
 
 - LibVLC does not know the tracks when `Playing` fires; they appear a moment later. Send `tracks` on `ESAdded` / `ESSelected`

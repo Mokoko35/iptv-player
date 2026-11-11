@@ -1,3 +1,4 @@
+import { DownloadsTab } from './DownloadsTab'
 import { RefreshCw, ShieldCheck, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
 import { dateTime, megabytes } from './epgFormat'
@@ -18,6 +19,7 @@ const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'epg', label: 'EPG' },
   { id: 'categories', label: 'Kategori Yönetimi' },
   { id: 'themes', label: 'Temalar' },
+  { id: 'downloads', label: 'İndirilenler' },
 ]
 
 /** TMDB key: posters, summaries and cast looked up by the cleaned title. Off until a key is entered. */
@@ -334,6 +336,7 @@ export function SettingsPage() {
         {route.tab === 'epg' && <Epg />}
         {route.tab === 'categories' && <Categories />}
         {route.tab === 'themes' && <ThemePicker />}
+        {route.tab === 'downloads' && <DownloadsTab />}
       </div>
     </div>
   )

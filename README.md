@@ -28,6 +28,7 @@ Built with [Arc Studio](https://studio.arc.io)
 - **Launch screen:** a short animated splash with the logo when the app opens.
 - **Dark, thin scrollbars** that match the theme.
 - **Settings:** list management, card size, logos, autoplay and program guide options.
+- **Downloads:** a film or an episode has an "İndir" button (in its page, in the panel under the player, and on every episode). The desktop app downloads it for offline viewing; a small notice in the corner shows the progress, several downloads can run at once, and Settings, İndirilenler lists the files with a play button and "Klasörü Aç". The button is switched off in a browser.
 - **Playback** of HLS (`.m3u8`) and MPEG-TS (`.ts`) streams, plus common video files.
 - **Private by design:** lists, favorites and settings stay on your device.
 

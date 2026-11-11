@@ -1,3 +1,4 @@
+import { DownloadButton } from './DownloadButton'
 import { Heart, Minimize2, Power, SkipBack, SkipForward } from 'lucide-react'
 import { EpgTimeline } from './EpgTimeline'
 import { KIND_BADGE, groupOf, kindOf } from './kinds'
@@ -43,6 +44,7 @@ export function NowPlayingInfo({ channel, windowed }: { channel: Channel; window
             </button>
           </>
         )}
+        {kind !== 'live' && <DownloadButton channel={channel} />}
         <button type="button" onClick={() => toggleFavorite(channel)} aria-pressed={fav} className={`btn-ghost ${fav ? '!border-accent !text-accent' : ''}`}>
           <Heart size={16} fill={fav ? 'currentColor' : 'none'} aria-hidden="true" />
           {fav ? 'Favorilerde' : 'Favorilere ekle'}

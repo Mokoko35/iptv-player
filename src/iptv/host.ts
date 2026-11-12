@@ -56,6 +56,8 @@ export type HostCommand =
   | { cmd: 'audioTrack'; id: number | string }
   /** Pick a subtitle track by id, or -1 to turn subtitles off. */
   | { cmd: 'subtitleTrack'; id: number | string }
+  /** Move subtitles in time while playing. `ms` is absolute (plus = later). Only sent when `hello` said `subtitleDelay: true`. */
+  | { cmd: 'subtitleDelay'; ms: number }
   /** A subtitle file the user chose (.srt or .vtt), as text. */
   | { cmd: 'addSubtitle'; name: string; text: string }
   /** Where the video should be drawn, in CSS pixels of the page. `visible: false` hides the video. */
@@ -86,6 +88,8 @@ export interface HostTrack {
 export interface HostState {
   /** C# has answered with `hello`. */
   connected: boolean
+  /** `hello` said C# can move the subtitles while playing (`subtitleDelay` command). */
+  subtitleDelay: boolean
   /** `hello` said C# can draw the video above the page (layout `layer: 'front'`), which lets the small player float freely. */
   frontLayer: boolean
   paused: boolean
@@ -107,6 +111,7 @@ export interface HostState {
 
 export const INITIAL_HOST_STATE: HostState = {
   connected: false,
+  subtitleDelay: false,
   frontLayer: false,
   paused: true,
   buffering: false,
@@ -157,7 +162,7 @@ export function reduceHost(state: HostState, data: unknown): HostState {
   if (!isRec(msg)) return state
   switch (msg.evt) {
     case 'hello':
-      return { ...state, connected: true, frontLayer: bool(msg.frontLayer) ?? false }
+      return { ...state, connected: true, frontLayer: bool(msg.frontLayer) ?? false, subtitleDelay: bool(msg.subtitleDelay) ?? false }
     case 'state':
       return {
         ...state,

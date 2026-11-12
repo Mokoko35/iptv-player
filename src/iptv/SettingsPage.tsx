@@ -308,8 +308,6 @@ function Categories() {
 }
 
 export function SettingsPage() {
-  const [subtitleSize, setSubtitleSize] = useState(1.0);
-  const [subtitleDelay, setSubtitleDelay] = useState(0);
   const { route } = useMedia()
   return (
     <div>
@@ -340,35 +338,6 @@ export function SettingsPage() {
         {route.tab === 'themes' && <ThemePicker />}
         {route.tab === 'downloads' && <DownloadsTab />}
       </div>
-    
-      <Section title="Altyazı Ayarları">
-        <Row label="Altyazı Boyutu" hint="Altyazının ekranda ne kadar büyük görüneceğini ayarlar.">
-          <input 
-            type="range" min="0.5" max="2.0" step="0.1" 
-            value={subtitleSize} 
-            onChange={(e) => {
-              const val = parseFloat(e.target.value);
-              setSubtitleSize(val);
-              window.chrome?.webview?.postMessage({ cmd: 'subtitleSettings', size: val });
-            }}
-            className="w-full accent-accent" 
-          />
-          <span className="text-xs tabular-nums">{subtitleSize.toFixed(1)}x</span>
-        </Row>
-        <Row label="Altyazı Gecikmesi (Saniye)" hint="Altyazı sesin önündeyse eksi, arkasındaysa artı değer verin.">
-          <input 
-            type="range" min="-10" max="10" step="0.5" 
-            value={subtitleDelay} 
-            onChange={(e) => {
-              const val = parseFloat(e.target.value);
-              setSubtitleDelay(val);
-              window.chrome?.webview?.postMessage({ cmd: 'subtitleSettings', delay: Math.round(val * 1000) });
-            }}
-            className="w-full accent-accent" 
-          />
-          <span className="text-xs tabular-nums">{subtitleDelay.toFixed(1)} sn</span>
-        </Row>
-      </Section>
     </div>
   )
 }

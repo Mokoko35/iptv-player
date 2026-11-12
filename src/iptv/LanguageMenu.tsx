@@ -12,7 +12,21 @@ interface Props {
   onOpenChange: (open: boolean) => void
   /** A line under "Altyazı", for example while the subtitle files are still being prepared. */
   subtitleNote?: string
+  /**
+   * Subtitle sync in milliseconds (plus = later). Only passed when the host says it can move subtitles while playing
+   * (`hello.subtitleDelay`); without it the menu has no sync control, because a control that does nothing is worse than none.
+   */
+  subtitleDelay?: { ms: number; onChange: (ms: number) => void }
 }
+
+/** "+50 ms", "-1,5 sn", "0 ms". */
+export function delayText(ms: number): string {
+  const sign = ms > 0 ? '+' : ms < 0 ? '-' : ''
+  const abs = Math.abs(ms)
+  return abs >= 1000 ? `${sign}${(abs / 1000).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} sn` : `${sign}${abs} ms`
+}
+
+const DELAY_LIMIT_MS = 30_000
 
 function Row({ on, onClick, children }: { on: boolean; onClick: () => void; children: string }) {
   return (
@@ -38,7 +52,7 @@ function Row({ on, onClick, children }: { on: boolean; onClick: () => void; chil
  * One menu for the audio language and the subtitles. It is always there, so there is always a place to look:
  * when the file's own tracks cannot be read it says so, and a subtitle file can still be added by hand.
  */
-export function LanguageMenu({ tracks, onAudio, onSubtitle, onSubtitleFile, onOpenChange, subtitleNote }: Props) {
+export function LanguageMenu({ tracks, onAudio, onSubtitle, onSubtitleFile, onOpenChange, subtitleNote, subtitleDelay }: Props) {
   const [open, setOpen] = useState(false)
   const box = useRef<HTMLDivElement>(null)
   const picker = useRef<HTMLInputElement>(null)
@@ -71,8 +85,6 @@ export function LanguageMenu({ tracks, onAudio, onSubtitle, onSubtitleFile, onOp
     }
   }, [open, onOpenChange])
 
-  const [subSize, setSubSize] = useState(1.0);
-  const [subDelay, setSubDelay] = useState(0);
   const audioNote = tracks.audio.length > 0 ? null : tracks.audioSupported ? 'Bu dosyada ayrı bir ses izi bulunamadı.' : 'Bu tarayıcı dosyadaki ses izlerini göstermiyor. C# uygulamasında (LibVLC) tüm ses izleri listelenir.'
   const active = tracks.subIndex >= 0
 
@@ -113,33 +125,33 @@ export function LanguageMenu({ tracks, onAudio, onSubtitle, onSubtitleFile, onOp
               {t.label}
             </Row>
           ))}
-          {/* Altyazı Ayarları */}
-          <div className="mt-3 border-t border-white/10 px-3 pt-3 pb-1">
-            <p className="mb-2 text-xs font-semibold text-[var(--subtle)]">Altyazı Ayarları</p>
-            <div className="mb-3">
-              <div className="mb-1 flex justify-between text-xs text-[var(--subtle)]">
-                <span>Boyut</span><span>{subSize.toFixed(1)}x</span>
+          {subtitleDelay && (
+            <div className="mt-2 border-t border-white/10 px-3 pb-1 pt-3" role="group" aria-label="Altyazı senkronu">
+              <div className="mb-2 flex items-center justify-between text-xs">
+                <span className="font-semibold text-[var(--subtle)]">Altyazı senkronu</span>
+                <span className="tabular-nums text-[var(--ink-2)]" aria-live="polite">
+                  {delayText(subtitleDelay.ms)}
+                </span>
               </div>
-              <input type="range" min="0.5" max="2.0" step="0.1" value={subSize} 
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  setSubSize(val);
-                  window.chrome?.webview?.postMessage({ cmd: 'subtitleSettings', size: val });
-                }} className="w-full accent-accent" />
-            </div>
-            <div>
-              <div className="mb-1 flex justify-between text-xs text-[var(--subtle)]">
-                <span>Gecikme (sn)</span><span>{subDelay.toFixed(1)}</span>
+              <div className="grid grid-cols-5 gap-1">
+                {[-500, -50, 0, 50, 500].map((step) => (
+                  <button
+                    key={step}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      subtitleDelay.onChange(step === 0 ? 0 : Math.max(-DELAY_LIMIT_MS, Math.min(DELAY_LIMIT_MS, subtitleDelay.ms + step)))
+                    }}
+                    aria-label={step === 0 ? 'Senkronu sıfırla' : `Altyazıyı ${Math.abs(step)} milisaniye ${step > 0 ? 'geciktir' : 'öne al'}`}
+                    className="min-h-9 rounded-lg bg-white/[0.06] px-1 text-xs tabular-nums text-[var(--ink-2)] transition hover:bg-white/15 hover:text-white"
+                  >
+                    {step === 0 ? 'Sıfırla' : `${step > 0 ? '+' : '−'}${Math.abs(step)}`}
+                  </button>
+                ))}
               </div>
-              <input type="range" min="-10" max="10" step="0.5" value={subDelay} 
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  setSubDelay(val);
-                  window.chrome?.webview?.postMessage({ cmd: 'subtitleSettings', delay: Math.round(val * 1000) });
-                }} className="w-full accent-accent" />
+              <p className="mt-1.5 text-[11px] leading-snug text-[var(--subtle)]">Altyazı sesten önce geliyorsa + ile geciktir, sonra geliyorsa − ile öne al. Milisaniye (ms).</p>
             </div>
-          </div>
-          
+          )}
           <button
             type="button"
             onClick={(e) => {

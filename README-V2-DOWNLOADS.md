@@ -42,3 +42,10 @@ var media = target.IsFile ? new Media(_libVlc, target.LocalPath, FromType.FromPa
 - Poster, indirme başlarken içeriğin posterinden kaydedilir (`logo`). Eski kayıtlarda poster yoksa baş harfli yer tutucu çıkar.
 - Ayarlar > İndirilenler sekmesi de duruyor.
 - Yerel `file:///` adresleri artık her zaman film sayılır (arama çubuğu, süre), uzantısı ne olursa olsun.
+
+## Altyazı ayarları (düzeltme)
+
+Ayrıntılı rapor: [`docs/ALTYAZI-RAPORU.md`](docs/ALTYAZI-RAPORU.md).
+
+- Ayarlar sayfasının en altındaki, tüm sekmelerde görünen "Altyazı Ayarları" bölümü silindi. OSD menüsündeki boyut ve gecikme kaydırıcıları da silindi: C# tarafında `subtitleSettings` için işleyici yoktu, hiçbiri çalışmıyordu. Boyut ve renk LibVLC 3'te oynarken değiştirilemez.
+- Yerine, yalnızca C# destekliyorsa görünen **Altyazı senkronu** (±50 ms, ±500 ms, sıfırla) eklendi. C# tarafı için 2 satır: rapordaki 4. bölüm.

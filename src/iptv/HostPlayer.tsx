@@ -348,6 +348,14 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
     return () => window.removeEventListener('keydown', onKey, true)
   }, [compact, onPrev, onNext, seek, togglePlay, toggleMute, toggleFullscreen, wake])
 
+  // Subtitle sync belongs to one film: LibVLC resets it to zero when the media changes, so the page does too.
+  const [delay, setDelay] = useState<{ url: string; ms: number }>({ url: '', ms: 0 })
+  const delayMs = delay.url === channel.url ? delay.ms : 0
+  const changeDelay = (ms: number) => {
+    setDelay({ url: channel.url, ms })
+    send({ cmd: 'subtitleDelay', ms })
+  }
+
   const message = host.error
   const show = !compact && (awake || host.paused || message !== null || menuOpen)
   const hideCursor = !compact && !show && !host.paused
@@ -405,7 +413,7 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
           // Films and episodes always have the menu; a live channel gets it when LibVLC found extra audio or subtitles.
           guide={guide}
         aspectMenu={onAspect ? <AspectMenu value={aspect} onChange={onAspect} forced onOpenChange={setMenuOpen} /> : undefined}
-        languageMenu={trackMenus || audio.length > 1 || subs.length > 0 ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} /> : undefined}
+        languageMenu={trackMenus || audio.length > 1 || subs.length > 0 ? <LanguageMenu tracks={tracks} onAudio={selectAudio} onSubtitle={selectSubtitle} onSubtitleFile={addSubtitleFile} onOpenChange={setMenuOpen} subtitleDelay={host.subtitleDelay ? { ms: delayMs, onChange: changeDelay } : undefined} /> : undefined}
         />
       )}
 

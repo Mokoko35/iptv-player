@@ -1,4 +1,5 @@
 import { DownloadTray } from './iptv/DownloadTray'
+import { DownloadsPage } from './iptv/DownloadsPage'
 import { AddPlaylistDialog } from './iptv/AddPlaylistDialog'
 import { ActivityPill } from './iptv/ActivityPill'
 import { BrowsePage } from './iptv/BrowsePage'
@@ -37,6 +38,7 @@ function Shell() {
           {route.page === 'movies' && <BrowsePage kind="movie" />}
           {route.page === 'series' && <BrowsePage kind="series" />}
           {route.page === 'favorites' && <FavoritesPage />}
+          {route.page === 'downloads' && <DownloadsPage />}
           {route.page === 'settings' && <SettingsPage />}
         </main>
       </div>

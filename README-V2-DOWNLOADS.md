@@ -4,6 +4,7 @@ Bu dal, `Mokoko35/IptvTest-Player-v2` deposundaki `src/` kaynağının (commit `
 
 | Yol | Ne |
 |---|---|
+| `iptv-ui-build.zip` | `web/` klasörünün zip hâli (içinde `index.html` ve `assets/`). Aç ve deponun `web/` klasörünün yerine koy. |
 | `web/` | `src/` + İndir özelliğinden derlenmiş arayüz. Depondaki `web/` klasörünün yerine kopyala (aynı yapı: `index.html` + `assets/`). |
 | `src/` | Senin `src/` klasörün + İndir özelliği (tam kaynak). |
 | `downloads-on-your-src.patch` | Senin `src/` klasörüne yapılan tüm değişiklikler. Deponun kökünde `git apply downloads-on-your-src.patch` ile uygulanır (yolları `src/...` ile başlar). |
@@ -30,3 +31,14 @@ var media = target.IsFile ? new Media(_libVlc, target.LocalPath, FromType.FromPa
 - `web/` içindeki eski derleme `src/` ile birebir aynı değildi: `src/` daha yeniydi (dil seçici, altyazı ayarları, ücretsiz listeler, "devam et / baştan başlat"). Yeni `web/` doğrudan `src/`'den derlendi.
 - `src/webview.d.ts`: `window.chrome?.webview?.postMessage` için tür tanımı. `LanguageMenu.tsx` ve `SettingsPage.tsx` bunu kullanıyordu ve `tsc` hata veriyordu.
 - Senin kaynağındaki birkaç eski lint uyarısına (ör. `ManageCategoriesModal.tsx`, `pip.ts` içinde effect'te `setState`) dokunmadım.
+
+## İndirilenler sayfası (sol menü)
+
+- Sol menüde (ve telefondaki alt menüde) **İndirilenler** öğesi var; yanında biten indirmelerin sayısı yazar. Adres `#/downloads`.
+- Sayfada **Filmler | Diziler** sekmeleri var. Filmler sekmesinde yalnızca filmler, Diziler sekmesinde yalnızca diziler görünür. İlk açılışta içinde bir şey olan sekme seçili gelir.
+- Diziler dizi adına göre gruplanır, bölümler sezon ve bölüm sırasına dizilir.
+- Bir karta tıklayınca dosya tam ekranda oynar. Dizide, indirilmiş bölümler önceki/sonraki bölüm düğmelerine girer.
+- Her kartta: poster, boyut ve tarih; `Klasörü Aç` ve listeden kaldır (dosya silinmez). Devam eden indirmede yüzde çubuğu ve `İptal`, hatalı olanda `Tekrar dene` var.
+- Poster, indirme başlarken içeriğin posterinden kaydedilir (`logo`). Eski kayıtlarda poster yoksa baş harfli yer tutucu çıkar.
+- Ayarlar > İndirilenler sekmesi de duruyor.
+- Yerel `file:///` adresleri artık her zaman film sayılır (arama çubuğu, süre), uzantısı ne olursa olsun.

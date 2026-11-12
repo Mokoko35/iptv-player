@@ -12,6 +12,7 @@ export const UNCATEGORIZED = 'Kategorisiz'
 /** Xtream portals put films under /movie/ and series under /series/. Plain M3U lists fall back to the file type. */
 export function kindOfUrl(rawUrl: string): Kind {
   const url = rawUrl.toLowerCase()
+  if (url.startsWith('file:')) return 'movie' // a downloaded file: it has a length and can be sought, whatever its extension
   if (url.includes('/movie/')) return 'movie'
   if (url.includes('/series/')) return 'series'
   if (/\.(mp4|mkv|avi)(\?|$)/.test(url)) return 'movie'

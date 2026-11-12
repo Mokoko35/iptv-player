@@ -10,6 +10,8 @@ import type { Channel } from './types'
 export interface DownloadItem {
   title: string
   url: string
+  /** The poster, so the list of downloads can show it. */
+  logo?: string
   kind: 'movie' | 'series'
   status: 'active' | 'done' | 'error'
   /** 0 to 100. */
@@ -55,6 +57,7 @@ function load(): DownloadItem[] {
       out.push({
         title,
         url: text(r.url) ?? '',
+        logo: text(r.logo),
         kind: r.kind === 'series' ? 'series' : 'movie',
         status: 'done',
         progress: 100,
@@ -76,7 +79,7 @@ const listeners = new Set<() => void>()
 
 function save(): void {
   try {
-    const done = items.filter((i) => i.status === 'done').map(({ title, url, kind, path, size, startedAt, finishedAt }) => ({ title, url, kind, path, size, startedAt, finishedAt }))
+    const done = items.filter((i) => i.status === 'done').map(({ title, url, logo, kind, path, size, startedAt, finishedAt }) => ({ title, url, logo, kind, path, size, startedAt, finishedAt }))
     localStorage.setItem(KEY, JSON.stringify(done))
   } catch {
     // Storage unavailable; the list just won't be kept.
@@ -122,7 +125,7 @@ export function requestDownload(channel: Channel): void {
   const title = channel.name
   const running = items.find((i) => i.title === title && i.status === 'active')
   if (running) return
-  upsert(title, () => ({ title, url: channel.url, kind: kindOf(channel) === 'series' ? 'series' : 'movie', status: 'active', progress: 0, startedAt: Date.now() }))
+  upsert(title, () => ({ title, url: channel.url, logo: channel.logo, kind: kindOf(channel) === 'series' ? 'series' : 'movie', status: 'active', progress: 0, startedAt: Date.now() }))
   send({ cmd: 'download', url: channel.url, title })
 }
 
@@ -150,6 +153,7 @@ export function handleDownloadMessage(msg: Record<string, unknown>): boolean {
       upsert(title, (prev) => ({
         title,
         url: prev?.url ?? '',
+        logo: prev?.logo,
         kind: prev?.kind ?? 'movie',
         startedAt: prev?.startedAt ?? Date.now(),
         status: 'active',
@@ -166,6 +170,7 @@ export function handleDownloadMessage(msg: Record<string, unknown>): boolean {
         (prev) => ({
           title,
           url: prev?.url ?? '',
+          logo: prev?.logo,
           kind: prev?.kind ?? 'movie',
           startedAt: prev?.startedAt ?? Date.now(),
           status: 'done',
@@ -184,6 +189,7 @@ export function handleDownloadMessage(msg: Record<string, unknown>): boolean {
       upsert(title, (prev) => ({
         title,
         url: prev?.url ?? '',
+        logo: prev?.logo,
         kind: prev?.kind ?? 'movie',
         startedAt: prev?.startedAt ?? Date.now(),
         status: 'error',

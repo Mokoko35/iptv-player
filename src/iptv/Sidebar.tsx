@@ -1,4 +1,5 @@
-import { Clapperboard, Heart, Home, Library, ListPlus, Menu, Settings, Tv } from 'lucide-react'
+import { Clapperboard, Download, Heart, Home, Library, ListPlus, Menu, Settings, Tv } from 'lucide-react'
+import { useDownloads } from './downloads'
 import { hrefFor, type Page } from './router'
 import { useMedia } from './useMedia'
 
@@ -8,6 +9,7 @@ const ITEMS: { page: Page; label: string; icon: typeof Home }[] = [
   { page: 'movies', label: 'Filmler', icon: Clapperboard },
   { page: 'series', label: 'Diziler', icon: Library },
   { page: 'favorites', label: 'Favoriler', icon: Heart },
+  { page: 'downloads', label: 'İndirilenler', icon: Download },
   { page: 'settings', label: 'Ayarlar', icon: Settings },
 ]
 
@@ -25,7 +27,8 @@ export function Brand() {
 export function Sidebar() {
   const { route, parts, lists, openAdd, prefs, updatePrefs } = useMedia()
   const collapsed = prefs.sidebarCollapsed
-  const counts: Partial<Record<Page, number>> = { live: parts.live.length, movies: parts.movie.length, series: parts.series.length }
+  const downloaded = useDownloads().items.filter((i) => i.status === 'done').length
+  const counts: Partial<Record<Page, number>> = { live: parts.live.length, movies: parts.movie.length, series: parts.series.length, downloads: downloaded }
   const toggle = () => updatePrefs({ sidebarCollapsed: !collapsed })
 
   return (
@@ -92,7 +95,7 @@ export function Sidebar() {
         </div>
       </aside>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-white/10 bg-nav/95 lg:hidden" aria-label="Ana menü">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-7 border-t border-white/10 bg-nav/95 lg:hidden" aria-label="Ana menü">
         {ITEMS.map(({ page, label, icon: Icon }) => {
           const on = route.page === page
           return (
@@ -103,7 +106,7 @@ export function Sidebar() {
               className={`flex min-h-14 flex-col items-center justify-center gap-0.5 text-[10px] font-medium ${on ? 'text-accent' : 'text-[var(--subtle)]'}`}
             >
               <Icon size={20} aria-hidden="true" />
-              {label}
+              <span className="max-w-full truncate px-0.5">{label}</span>
             </a>
           )
         })}

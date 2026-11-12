@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 
 /** Hash routing, so it also works when the app is opened from a file (or from any WebView2 host name). */
-export type Page = 'home' | 'live' | 'movies' | 'series' | 'favorites' | 'settings'
+export type Page = 'home' | 'live' | 'movies' | 'series' | 'favorites' | 'downloads' | 'settings'
 export type SettingsTab = 'general' | 'playback' | 'epg' | 'categories' | 'themes' | 'downloads'
 
-export const PAGES: Page[] = ['home', 'live', 'movies', 'series', 'favorites', 'settings']
+export const PAGES: Page[] = ['home', 'live', 'movies', 'series', 'favorites', 'downloads', 'settings']
 export const SETTINGS_TABS: SettingsTab[] = ['general', 'playback', 'epg', 'categories', 'themes', 'downloads']
 
 export interface Route {

@@ -49,3 +49,7 @@ Ayrıntılı rapor: [`docs/ALTYAZI-RAPORU.md`](docs/ALTYAZI-RAPORU.md).
 
 - Ayarlar sayfasının en altındaki, tüm sekmelerde görünen "Altyazı Ayarları" bölümü silindi. OSD menüsündeki boyut ve gecikme kaydırıcıları da silindi: C# tarafında `subtitleSettings` için işleyici yoktu, hiçbiri çalışmıyordu. Boyut ve renk LibVLC 3'te oynarken değiştirilemez.
 - Yerine, yalnızca C# destekliyorsa görünen **Altyazı senkronu** (±50 ms, ±500 ms, sıfırla) eklendi. C# tarafı için 2 satır: rapordaki 4. bölüm.
+
+## Orta boy oynatıcı (pencere) kaydırması
+
+Oynatıcı penceresi ekrandan uzun olunca (küçük pencere) bütün pencere kayıyordu. Videoyu C# çizdiği için ve C# bir kaydırma alanına kırpılamadığı için video, metinle birlikte yukarı kayıp pencerenin dışına çıkıyordu. Artık video sabit; yalnızca altındaki bilgi paneli (program rehberi, düğmeler) kendi içinde kayıyor. Video genişliği, bilgi paneline yer kalsın diye yüksekliğe göre biraz daha erken küçülüyor.

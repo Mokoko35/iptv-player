@@ -151,7 +151,7 @@ export function PlayerOverlay() {
     <Player
       channel={current}
       autoplay={prefs.autoplay}
-      className={IS_HOST && inline ? 'rounded-none !aspect-auto h-full' : pipFree ? `shrink-0 rounded-none ${pipHole ? '' : '!bg-black'}` : 'rounded-none'}
+      className={IS_HOST && inline ? 'rounded-none !aspect-auto h-full' : pipFree ? `shrink-0 rounded-none ${pipHole ? '' : '!bg-black'}` : modal ? 'shrink-0 rounded-none' : 'rounded-none'}
       layoutKey={pipFree ? pip.key : undefined}
       compact={mode === 'mini'}
       guide={guide}
@@ -201,8 +201,8 @@ export function PlayerOverlay() {
       : 'fixed z-20 overflow-hidden rounded-2xl border border-white/10 bg-black shadow-xl'
     : modal
       ? IS_HOST
-        ? 'pointer-events-auto absolute inset-x-0 top-[3dvh] mx-auto max-h-[94dvh] w-[min(1100px,96vw,calc((100dvh_-_400px)*1.7778))] min-w-[min(96vw,360px)] overflow-y-auto rounded-[18px] border-8 border-white/[0.14] shadow-2xl'
-        : 'fixed left-1/2 top-1/2 z-50 max-h-[96dvh] w-[min(1100px,96vw,calc((100dvh_-_400px)*1.7778))] min-w-[min(96vw,360px)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl border border-white/15 bg-elev shadow-2xl'
+        ? 'pointer-events-auto absolute inset-x-0 top-[3dvh] mx-auto max-h-[94dvh] w-[min(1100px,96vw,calc((100dvh_-_460px)*1.7778))] min-w-[min(96vw,360px)] flex flex-col overflow-hidden rounded-[18px] border-8 border-white/[0.14] shadow-2xl'
+        : 'fixed left-1/2 top-1/2 z-50 max-h-[96dvh] w-[min(1100px,96vw,calc((100dvh_-_460px)*1.7778))] min-w-[min(96vw,360px)] -translate-x-1/2 -translate-y-1/2 flex flex-col overflow-hidden rounded-3xl border border-white/15 bg-elev shadow-2xl'
       : pipFree
         ? IS_HOST
           ? 'pointer-events-auto absolute flex flex-col overflow-hidden rounded-xl border-[5px] border-white/[0.16] shadow-2xl'
@@ -224,7 +224,7 @@ export function PlayerOverlay() {
       {player}
 
       {modal && !bare && (
-        <div className={`p-5 sm:p-6 ${IS_HOST ? 'rounded-b-lg bg-elev' : ''}`}>
+        <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain p-5 sm:p-6 ${IS_HOST ? 'rounded-b-lg bg-elev' : ''}`}>
           <NowPlayingInfo channel={current} windowed />
         </div>
       )}

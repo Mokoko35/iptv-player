@@ -1,0 +1,419 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Themes. Each theme sets a handful of color channels ("r g b"); everything else is derived from them.
+ * `data-theme` is set on <html> (see src/iptv/themes.ts). The default theme is also the fallback.
+ */
+:root,
+html[data-theme='default'] {
+  --bg-rgb: 11 12 16;
+  --nav-rgb: 8 9 12;
+  --rail-rgb: 13 14 19;
+  --elev-rgb: 20 21 26;
+  --accent-rgb: 255 122 26;
+  --accent-hover: #ff9340;
+  --accent-ink: #1a0f05;
+  --scroll-thumb: rgba(255, 255, 255, 0.14);
+  --scroll-thumb-hover: rgba(255, 138, 51, 0.55);
+}
+
+html[data-theme='neon'] {
+  --bg-rgb: 9 5 22;
+  --nav-rgb: 6 3 15;
+  --rail-rgb: 13 8 31;
+  --elev-rgb: 22 14 48;
+  --accent-rgb: 255 43 214;
+  --accent-hover: #ff6ee6;
+  --accent-ink: #1c0018;
+  --scroll-thumb: rgba(255, 43, 214, 0.28);
+  --scroll-thumb-hover: rgba(0, 240, 255, 0.7);
+}
+
+html[data-theme='navy'] {
+  --bg-rgb: 10 18 38;
+  --nav-rgb: 7 13 28;
+  --rail-rgb: 12 22 46;
+  --elev-rgb: 19 31 62;
+  --accent-rgb: 77 163 255;
+  --accent-hover: #7dbbff;
+  --accent-ink: #04122a;
+  --scroll-thumb: rgba(125, 187, 255, 0.22);
+  --scroll-thumb-hover: rgba(77, 163, 255, 0.7);
+}
+
+html[data-theme='forest'] {
+  --bg-rgb: 9 16 13;
+  --nav-rgb: 6 12 10;
+  --rail-rgb: 12 21 17;
+  --elev-rgb: 18 30 24;
+  --accent-rgb: 52 211 153;
+  --accent-hover: #6ee7b7;
+  --accent-ink: #03150e;
+  --scroll-thumb: rgba(110, 231, 183, 0.2);
+  --scroll-thumb-hover: rgba(52, 211, 153, 0.65);
+}
+
+html {
+  color-scheme: dark;
+  --bg: rgb(var(--bg-rgb));
+  --accent: rgb(var(--accent-rgb));
+  --danger-rgb: 232 109 122;
+  --danger: rgb(var(--danger-rgb));
+  --success: #8dd89f;
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-strong: rgba(255, 255, 255, 0.1);
+  --ink: #f5f5f4;
+  --ink-2: #e7e5e4;
+  --muted: #d6d3d1;
+  --subtle: #a8a29e;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgb(var(--accent-rgb) / 0.6);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Windows has no flag emoji. This font (bundled, Twemoji flags only) draws them; other glyphs fall through. */
+@font-face {
+  font-family: 'Twemoji Country Flags';
+  unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E007F;
+  src: url('./assets/fonts/TwemojiCountryFlags.woff2') format('woff2');
+  font-display: swap;
+}
+
+.flag {
+  font-family: 'Twemoji Country Flags', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+  line-height: 1;
+}
+
+.select-solid {
+  appearance: none;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 2.25rem 0 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.15);
+  border-radius: 0.75rem;
+  /* Solid, never transparent, so the page behind it cannot show through. */
+  background-color: rgb(var(--elev-rgb, 20 21 26));
+  color: var(--ink);
+  color-scheme: dark;
+  font-size: 0.875rem;
+  font-family: 'Twemoji Country Flags', 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+.select-solid option {
+  background-color: rgb(var(--elev-rgb, 20 21 26));
+  color: rgb(235 238 245);
+}
+
+.display {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', Menlo, monospace;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 24px;
+}
+
+.inner {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+.field {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgb(var(--bg-rgb) / 0.6);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.field::placeholder {
+  color: var(--subtle);
+}
+
+.field:focus {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.25);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: 14px;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink-2);
+  font-weight: 500;
+  font-size: 14px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+
+.btn-ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* The app canvas. */
+.theme-media {
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100dvh;
+}
+
+.theme-media button:focus-visible,
+.theme-media a:focus-visible,
+.theme-media select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Scrollbars: thin, rounded, and tinted by the theme. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox has no ::-webkit-scrollbar. */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) transparent;
+  }
+}
+
+/* Splash screen */
+@keyframes splash-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(var(--accent-rgb) / 0.45), 0 0 40px rgb(var(--accent-rgb) / 0.25);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 18px rgb(var(--accent-rgb) / 0), 0 0 70px rgb(var(--accent-rgb) / 0.45);
+    transform: scale(1.06);
+  }
+}
+@keyframes splash-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+@keyframes splash-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.splash-logo {
+  animation: splash-glow 1.8s ease-in-out infinite;
+}
+.splash-bar {
+  animation: splash-bar 1.2s ease-in-out infinite;
+}
+.splash-rise {
+  animation: splash-rise 0.6s ease-out both;
+}
+
+/* Loading shimmer for skeleton cards */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* Subtitles: white on a dark box, easy to read over any picture. */
+video::cue {
+  background: rgb(0 0 0 / 0.72);
+  color: #fff;
+  font-size: 1.15em;
+}
+
+/* The player fills the screen in full screen mode instead of keeping its 16:9 box. */
+.player-surface:fullscreen {
+  aspect-ratio: auto;
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+}
+
+/* Inside the C# app the video is drawn by LibVLC BEHIND the page (host.ts sets data-host), so the page is see-through.
+   Panels that have their own background (menus, cards, dialogs) stay solid; only the page itself is cleared. */
+html[data-host],
+html[data-host] body,
+html[data-host] #root {
+  background: transparent !important;
+}
+html[data-host] .theme-media {
+  background: transparent;
+}
+
+/* The player's own layer lives in #player-root and takes no space of its own. */
+#player-root {
+  display: contents;
+}
+
+/* C# app: the video is drawn behind the page, so no page pixel may cover it.
+   - Player window open, or full screen: the page is hidden (visibility keeps the layout, so the page is exactly as it was
+     when the player closes).
+   - Small player docked: the page keeps working and simply does not use the strip on the right, where the small player
+     sits. Nothing overlaps, so there is nothing to clip and no extra drawing work. On a very narrow window there is no room
+     for a strip, and the page is hidden like in the player window. */
+html[data-player-mode='modal'] #root,
+html[data-fullscreen] #root {
+  visibility: hidden;
+}
+@media (min-width: 640px) {
+  html[data-player-mode='mini'] #root {
+    padding-right: 22.5rem;
+  }
+}
+@media (max-width: 639px) {
+  html[data-player-mode='mini'] #root {
+    visibility: hidden;
+  }
+}
+
+/* C# app: the page is drawn transparent, over a native video, by WebView2. Blurring what is behind an element is the one
+   effect it cannot afford there (a single paint took seconds), so that stays off, together with the decorative blurred
+   glows and endless animations (the loading spinner still turns). Hover growth, soft shadows and transitions on the cards
+   are on, as in the browser. */
+html[data-host] *,
+html[data-host] *::before,
+html[data-host] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html[data-host] *:not(.animate-spin),
+html[data-host] *:not(.animate-spin)::before,
+html[data-host] *:not(.animate-spin)::after {
+  animation: none !important;
+}
+html[data-host] .blur-sm,
+html[data-host] .blur-2xl,
+html[data-host] .blur-3xl {
+  display: none !important;
+}

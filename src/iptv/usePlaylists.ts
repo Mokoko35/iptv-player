@@ -6,6 +6,7 @@ import { hashId } from './m3u'
 import { loadActiveId, saveActiveId } from './storage'
 import type { Channel, PlaylistMeta, XtreamLogin } from './types'
 import { xtreamPlaylistUrl } from './xtream'
+import { t } from './i18n'
 
 export type AddInput =
   | { kind: 'url'; name: string; url: string }
@@ -67,7 +68,7 @@ export function usePlaylists(): PlaylistsState {
           setChannels(ch)
         }
       } catch {
-        if (!cancelled) setError('Kayıtlı listeler okunamadı. Tarayıcı depolaması kapalı olabilir.')
+        if (!cancelled) setError(t('Kayıtlı listeler okunamadı. Tarayıcı depolaması kapalı olabilir.'))
       } finally {
         if (!cancelled) setStarting(false)
       }
@@ -102,7 +103,7 @@ export function usePlaylists(): PlaylistsState {
         setProgress((p) => ({ ...EMPTY_PROGRESS, bytes: p?.bytes ?? 0, total: p?.total, ...counts, stage: 'saving' }))
         const meta: PlaylistMeta = {
           id: `${hashId(`${input.name}${Date.now()}`)}${Math.random().toString(36).slice(2, 6)}`,
-          name: input.name.trim() || 'Yeni liste',
+          name: input.name.trim() || t('Yeni liste'),
           kind: input.kind,
           sourceUrl,
           xtream,
@@ -129,7 +130,7 @@ export function usePlaylists(): PlaylistsState {
     async (id: string) => {
       const meta = playlists.find((p) => p.id === id)
       if (!meta?.sourceUrl) {
-        setError('Bu liste bir dosyadan eklendi. Güncellemek için dosyayı yeniden ekle.')
+        setError(t('Bu liste bir dosyadan eklendi. Güncellemek için dosyayı yeniden ekle.'))
         return
       }
       setBusy(true)

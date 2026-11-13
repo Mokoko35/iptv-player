@@ -10,6 +10,7 @@ import type { NowNext } from './xmltv'
 import { AspectMenu } from './AspectMenu'
 import type { AspectMode } from './prefs'
 import { loadVolume, saveVolume } from './volume'
+import { t } from './i18n'
 
 const HIDE_AFTER_MS = 3000
 
@@ -381,7 +382,7 @@ export function HostPlayer({ channel, autoplay, className, layoutKey, compact, o
 
       {host.buffering && !message && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
-          <Loader2 className="animate-spin text-white/80 drop-shadow" size={36} aria-label="Yükleniyor" />
+          <Loader2 className="animate-spin text-white/80 drop-shadow" size={36} aria-label={t('Yükleniyor')} />
         </div>
       )}
 

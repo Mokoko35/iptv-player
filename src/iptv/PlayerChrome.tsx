@@ -3,6 +3,7 @@ import { Maximize, Minimize, Pause, Play, SkipBack, SkipForward, Volume2, Volume
 import { clock, minutesText } from './epgFormat'
 import type { Channel } from './types'
 import type { NowNext } from './xmltv'
+import { t } from './i18n'
 
 export const clockTime = (seconds: number): string => {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00'
@@ -93,20 +94,20 @@ function GuideBand({ guide }: { guide: NowNext }) {
   const left = now ? Math.round((1 - guide.progress) * total) : 0
   const percent = now ? Math.round(Math.min(1, Math.max(0, guide.progress)) * 100) : 0
   return (
-    <div className="mt-2 rounded-xl border border-white/10 bg-black/75 px-3 py-2.5 shadow-lg" role="group" aria-label="Program rehberi">
+    <div className="mt-2 rounded-xl border border-white/10 bg-black/75 px-3 py-2.5 shadow-lg" role="group" aria-label={t('Program rehberi')}>
       <div className="grid gap-x-6 gap-y-3 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         {now ? (
           <div className="min-w-0">
             <div className="flex items-baseline justify-between gap-4 text-sm">
               <p className="min-w-0 truncate font-medium text-white">
-                <span className="mr-2 text-xs font-bold tracking-wider text-accent">ŞİMDİ</span>
+                <span className="me-2 text-xs font-bold tracking-wider text-accent">{t('ŞİMDİ')}</span>
                 {now.title}
               </p>
               <p className="shrink-0 tabular-nums text-white/85">
-                {minutesText(left)} kaldı <span className="text-white/55">/ {minutesText(total)}</span>
+                {minutesText(left)}{' '}{t('kaldı')}{' '}<span className="text-white/55">/ {minutesText(total)}</span>
               </p>
             </div>
-            <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/20" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-label="Programın ilerleyişi">
+            <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/20" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-label={t('Programın ilerleyişi')}>
               <div className="h-full rounded-full bg-accent transition-[width] duration-1000" style={{ width: `${percent}%` }} />
             </div>
             <div className="mt-1 flex items-baseline justify-between gap-4 text-xs tabular-nums text-white/55">
@@ -122,7 +123,7 @@ function GuideBand({ guide }: { guide: NowNext }) {
 
         {upcoming.length > 0 && (
           <div className="min-w-0 lg:border-l lg:border-white/15 lg:pl-6">
-            <p className="text-[11px] font-bold tracking-wider text-white/55">SIRADAKİ</p>
+            <p className="text-[11px] font-bold tracking-wider text-white/55">{t('SIRADAKİ')}</p>
             <ol className="mt-1.5 space-y-1.5">
               {upcoming.map((p) => (
                 <li key={p.start} className="min-w-0">
@@ -165,16 +166,14 @@ export function PlayerChrome(p: Props) {
             max={Math.floor(p.total)}
             value={Math.floor(p.time)}
             onChange={(e) => p.onSeek(Number(e.target.value))}
-            aria-label="Konum"
+            aria-label={t('Konum')}
             className="mb-1 h-1.5 w-full cursor-pointer accent-accent"
           />
         )}
         {p.resume && (
-          <div className="mt-1 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/75 px-3 py-2.5 shadow-lg" role="group" aria-label="Kaldığınız yerden devam">
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/75 px-3 py-2.5 shadow-lg" role="group" aria-label={t('Kaldığınız yerden devam')}>
             <p className="min-w-0 text-sm text-white/90">
-              <span className="mr-2 text-xs font-bold tracking-wider text-accent">DEVAM</span>
-              Kaldığınız yerden devam edilsin mi?
-              <span className="ml-2 tabular-nums text-white/60">{clockTime(p.resume.position)}</span>
+              <span className="me-2 text-xs font-bold tracking-wider text-accent">{t('DEVAM')}</span>{t('Kaldığınız yerden devam edilsin mi?')}<span className="ml-2 tabular-nums text-white/60">{clockTime(p.resume.position)}</span>
             </p>
             <div className="flex shrink-0 gap-2">
               <button
@@ -184,9 +183,7 @@ export function PlayerChrome(p: Props) {
                   p.resume?.onContinue()
                 }}
                 className="rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-[var(--accent-ink)] transition hover:opacity-90"
-              >
-                Devam et
-              </button>
+              >{t('Devam et')}</button>
               <button
                 type="button"
                 onClick={(e) => {
@@ -194,16 +191,14 @@ export function PlayerChrome(p: Props) {
                   p.resume?.onRestart()
                 }}
                 className="rounded-lg border border-white/20 px-3 py-1.5 text-sm text-white/85 transition hover:bg-white/10"
-              >
-                Baştan başlat
-              </button>
+              >{t('Baştan başlat')}</button>
             </div>
           </div>
         )}
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-1 sm:gap-2">
           {/* Left: sound. */}
           <div className="flex min-w-0 items-center gap-0.5 sm:gap-1">
-            <ControlButton label={p.muted || p.volume === 0 ? 'Sesi aç (M)' : 'Sesi kapat (M)'} onClick={p.onToggleMute}>
+            <ControlButton label={p.muted || p.volume === 0 ? t('Sesi aç (M)') : t('Sesi kapat (M)')} onClick={p.onToggleMute}>
               {p.muted || p.volume === 0 ? <VolumeX size={20} aria-hidden="true" /> : <Volume2 size={20} aria-hidden="true" />}
             </ControlButton>
             <input
@@ -213,29 +208,29 @@ export function PlayerChrome(p: Props) {
               step={0.05}
               value={p.muted ? 0 : p.volume}
               onChange={(e) => p.onVolume(Number(e.target.value))}
-              aria-label="Ses düzeyi"
+              aria-label={t('Ses düzeyi')}
               className="hidden h-1.5 w-24 cursor-pointer accent-accent sm:block"
             />
           </div>
           {/* Middle: previous, play, next. Always in the centre of the bar, and easy to hit. */}
           <div className="flex shrink-0 items-center justify-center gap-1 sm:gap-3">
             {(p.onPrev !== undefined || p.prevLabel !== undefined) && (
-              <ControlButton label={p.prevLabel ?? 'Önceki kanal (←)'} onClick={p.onPrev ?? (() => undefined)} disabled={p.prevDisabled} size="lg">
+              <ControlButton label={p.prevLabel ?? t('Önceki kanal (←)')} onClick={p.onPrev ?? (() => undefined)} disabled={p.prevDisabled} size="lg">
                 <SkipBack size={24} fill="currentColor" aria-hidden="true" />
               </ControlButton>
             )}
-            <ControlButton label={p.paused ? 'Oynat (boşluk)' : 'Duraklat (boşluk)'} onClick={p.onTogglePlay} size="play">
+            <ControlButton label={p.paused ? t('Oynat (boşluk)') : t('Duraklat (boşluk)')} onClick={p.onTogglePlay} size="play">
               {p.paused ? <Play size={26} fill="currentColor" aria-hidden="true" /> : <Pause size={26} fill="currentColor" aria-hidden="true" />}
             </ControlButton>
             {(p.onNext !== undefined || p.nextLabel !== undefined) && (
-              <ControlButton label={p.nextLabel ?? 'Sonraki kanal (→)'} onClick={p.onNext ?? (() => undefined)} disabled={p.nextDisabled} size="lg">
+              <ControlButton label={p.nextLabel ?? t('Sonraki kanal (→)')} onClick={p.onNext ?? (() => undefined)} disabled={p.nextDisabled} size="lg">
                 <SkipForward size={24} fill="currentColor" aria-hidden="true" />
               </ControlButton>
             )}
           </div>
           {/* Right: the clock, the menus and full screen. */}
           <div className="flex min-w-0 items-center justify-end gap-0.5 sm:gap-1">
-            <div className="min-w-0 truncate px-1 text-right text-sm tabular-nums text-white/80">
+            <div className="min-w-0 truncate px-1 text-end text-sm tabular-nums text-white/80">
               {p.isVod ? (
                 <span className="inline-flex items-center gap-2">
                   {p.navLabel && <span className="text-white/55">{p.navLabel}</span>}
@@ -247,14 +242,13 @@ export function PlayerChrome(p: Props) {
                 <span className="inline-flex items-center gap-2">
                   {p.navLabel && <span className="hidden text-white/65 sm:inline">{p.navLabel}</span>}
                   <span className="inline-flex items-center gap-1.5 rounded-md bg-danger/90 px-2 py-0.5 text-xs font-bold tracking-wider text-white">
-                    <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-white" /> CANLI
-                  </span>
+                    <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-white" />{' '}{t('CANLI')}</span>
                 </span>
               )}
             </div>
             {p.aspectMenu}
             {p.languageMenu}
-            <ControlButton label={p.fullscreen ? 'Tam ekrandan çık (F)' : 'Tam ekran (F)'} onClick={p.onToggleFullscreen}>
+            <ControlButton label={p.fullscreen ? t('Tam ekrandan çık (F)') : t('Tam ekran (F)')} onClick={p.onToggleFullscreen}>
               {p.fullscreen ? <Minimize size={20} aria-hidden="true" /> : <Maximize size={20} aria-hidden="true" />}
             </ControlButton>
           </div>

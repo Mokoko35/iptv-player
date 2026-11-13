@@ -10,6 +10,7 @@ import type { Channel, SubtitleSource } from './types'
 import type { NowNext } from './xmltv'
 import { AspectMenu } from './AspectMenu'
 import type { AspectMode } from './prefs'
+import { t } from './i18n'
 
 type Engine = 'hls' | 'ts' | 'native'
 const NO_SOURCES: SubtitleSource[] = []
@@ -39,7 +40,7 @@ function readTracks(video: HTMLVideoElement, hls: HlsInstance | null, extras: HT
       audio: hls.audioTracks.map((t, i) => ({ label: labelFor(t.name, t.lang, `Ses ${i + 1}`) })),
       audioIndex: hls.audioTrack,
       audioSupported: true,
-      subs: [...own.map((t, i) => ({ label: labelFor(t.name, t.lang, `Altyazı ${i + 1}`) })), ...extras.map((el, i) => ({ label: el.label || `Altyazı ${own.length + i + 1}` }))],
+      subs: [...own.map((tk, i) => ({ label: labelFor(tk.name, tk.lang, t('Altyazı {v0}', { v0: i + 1 })) })), ...extras.map((el, i) => ({ label: el.label || t('Altyazı {v0}', { v0: own.length + i + 1 }) }))],
       subIndex: hls.subtitleTrack >= 0 ? hls.subtitleTrack : extraShowing >= 0 ? own.length + extraShowing : -1,
     }
   }
@@ -57,7 +58,7 @@ function readTracks(video: HTMLVideoElement, hls: HlsInstance | null, extras: HT
     audio,
     audioIndex,
     audioSupported: list !== undefined,
-    subs: texts.map((t, i) => ({ label: labelFor(t.label, t.language, `Altyazı ${i + 1}`) })),
+    subs: texts.map((tk, i) => ({ label: labelFor(tk.label, tk.language, t('Altyazı {v0}', { v0: i + 1 })) })),
     subIndex: texts.findIndex((t) => t.mode === 'showing'),
   }
 }
@@ -185,7 +186,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, pre
     const onWaiting = () => patch({ loading: true })
     // Emptying the element when a channel is swapped can raise an error with no cause; only a real one counts.
     const onNativeError = () => {
-      if (video.error) fail('Bu yayın oynatılamadı. Adres geçersiz olabilir veya kodek tarayıcıda desteklenmiyor.')
+      if (video.error) fail(t('Bu yayın oynatılamadı. Adres geçersiz olabilir veya kodek tarayıcıda desteklenmiyor.'))
     }
     const refreshTracks = () => setTracks(readTracks(video, hlsRef.current, extrasRef.current.map((x) => x.el)))
     const onEmptied = () => {
@@ -268,7 +269,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, pre
               } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
                 hls.recoverMediaError()
               } else {
-                fail('Yayına bağlanılamadı. Sunucu kapalı olabilir veya tarayıcıya erişimi engelliyor (CORS).')
+                fail(t('Yayına bağlanılamadı. Sunucu kapalı olabilir veya tarayıcıya erişimi engelliyor (CORS).'))
               }
             })
             hlsRef.current = hls
@@ -289,7 +290,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, pre
           if (disposed) return
           if (mpegts.isSupported()) {
             const player = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: channel.url })
-            player.on(mpegts.Events.ERROR, () => fail('Yayına bağlanılamadı. Sunucu kapalı olabilir veya tarayıcıya erişimi engelliyor (CORS).'))
+            player.on(mpegts.Events.ERROR, () => fail(t('Yayına bağlanılamadı. Sunucu kapalı olabilir veya tarayıcıya erişimi engelliyor (CORS).')))
             player.attachMediaElement(video)
             player.load()
             teardown = () => player.destroy()
@@ -302,7 +303,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, pre
         // With a saved place the player waits where the user stopped instead of playing from the beginning.
         if (autoplay && resumeAt === undefined) await video.play().catch(() => undefined) // Autoplay can be refused; the user can press play.
       } catch {
-        fail('Oynatıcı başlatılamadı.')
+        fail(t('Oynatıcı başlatılamadı.'))
       }
     }
     void start()
@@ -376,7 +377,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, pre
           continue
         }
         loadedSubs.current.add(source.url)
-        attachTrack(video, url, source.label ?? labelFor(undefined, source.lang, `Altyazı ${i + 1}`), source.lang)
+        attachTrack(video, url, source.label ?? labelFor(undefined, source.lang, t('Altyazı {v0}', { v0: i + 1 })), source.lang)
       }
       if (!disposed) setTracks(readTracks(video, hlsRef.current, extrasRef.current.map((x) => x.el)))
     })()
@@ -572,7 +573,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, pre
   }, [compact, onPrev, onNext, togglePlay, toggleMute, toggleFullscreen, wake, seek, isVod])
 
   const message = blocked
-    ? 'Bu yayın http:// ile başlıyor. https sayfalarda tarayıcı bunu engeller. C# uygulamasında veya http:// ile açılan sayfada oynar.'
+    ? t('Bu yayın http:// ile başlıyor. https sayfalarda tarayıcı bunu engeller. C# uygulamasında veya http:// ile açılan sayfada oynar.')
     : error
   const show = !compact && (awake || paused || message !== null || menuOpen)
   const hideCursor = !compact && !show && !paused
@@ -602,7 +603,7 @@ function PlayerCore({ channel, autoplay, className, compact, onPrev, onNext, pre
 
       {loading && !message && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
-          <Loader2 className="animate-spin text-white/70" size={36} aria-label="Yükleniyor" />
+          <Loader2 className="animate-spin text-white/70" size={36} aria-label={t('Yükleniyor')} />
         </div>
       )}
 
@@ -686,7 +687,7 @@ export function Player({ channel, autoplay = true, className = 'rounded-2xl bord
       <div className="grid aspect-video w-full place-items-center rounded-2xl border border-dashed border-white/15 bg-black/40 p-6 text-center">
         <div>
           <Tv className="mx-auto text-[var(--subtle)]" size={34} aria-hidden="true" />
-          <p className="mt-3 text-sm text-[var(--subtle)]">İzlemek için listeden bir kanal seç.</p>
+          <p className="mt-3 text-sm text-[var(--subtle)]">{t('İzlemek için listeden bir kanal seç.')}</p>
         </div>
       </div>
     )

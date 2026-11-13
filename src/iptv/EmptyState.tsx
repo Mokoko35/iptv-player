@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { ListPlus } from 'lucide-react'
 import { useMedia } from './useMedia'
+import { t } from './i18n'
 
 export function Empty({ icon, children }: { icon: 'add' | 'manage' | 'none'; children: ReactNode }) {
   const { openAdd } = useMedia()
@@ -11,8 +12,7 @@ export function Empty({ icon, children }: { icon: 'add' | 'manage' | 'none'; chi
         {icon === 'add' && (
           <div className="mt-4">
             <button type="button" onClick={openAdd} className="btn-primary">
-              <ListPlus size={16} aria-hidden="true" /> Liste ekle
-            </button>
+              <ListPlus size={16} aria-hidden="true" />{' '}{t('Liste ekle')}</button>
           </div>
         )}
       </div>

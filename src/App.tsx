@@ -22,7 +22,7 @@ function Shell() {
     <div className="theme-media">
       <Sidebar />
 
-      <div className={prefs.sidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-60'}>
+      <div className={prefs.sidebarCollapsed ? 'lg:ps-[72px]' : 'lg:ps-60'}>
         <header className="flex items-center justify-between px-4 pt-4 lg:hidden">
           <Brand />
         </header>

@@ -5,6 +5,7 @@ import { normalizeCategory } from './sanitize'
 import { readSubtitleSources } from './tracks'
 import type { Channel, SubtitleSource, XtreamLogin } from './types'
 import { normalizeServer } from './xtream'
+import { t } from './i18n'
 
 /* ------------------------------------------------------------------ */
 /* Finding the portal login for a list                                 */
@@ -278,7 +279,7 @@ export function episodeChannel(series: Channel, ep: Episode, poster: string | un
     logo: ep.image ?? poster ?? series.logo,
     group: series.group,
     description: ep.plot ?? series.description,
-    subtitle: `Sezon ${ep.season} · Bölüm ${ep.number} · ${ep.title}`,
+    subtitle: t('Sezon {season} · Bölüm {number} · {title}', { season: ep.season, number: ep.number, title: ep.title }),
     subtitleTracks: ep.subtitles && ep.subtitles.length > 0 ? ep.subtitles : undefined,
   }
 }

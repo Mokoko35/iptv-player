@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react'
 import { THEMES, type Theme } from './themes'
 import { useMedia } from './useMedia'
+import { t } from './i18n'
 
 /** A tiny picture of the app in a theme's colors. */
 function Preview({ theme }: { theme: Theme }) {
@@ -33,26 +34,26 @@ export function ThemePicker() {
   return (
     <section className="rounded-2xl border border-white/10 bg-white/[0.04]">
       <div className="border-b border-white/10 px-5 py-4">
-        <h2 className="display text-lg font-semibold">Temalar</h2>
-        <p className="mt-0.5 text-sm text-[var(--subtle)]">Vurgu rengini, zemin tonlarını ve kaydırma çubuğu rengini değiştirir. Seçimin kaydedilir.</p>
+        <h2 className="display text-lg font-semibold">{t('Temalar')}</h2>
+        <p className="mt-0.5 text-sm text-[var(--subtle)]">{t('Vurgu rengini, zemin tonlarını ve kaydırma çubuğu rengini değiştirir. Seçimin kaydedilir.')}</p>
       </div>
-      <div role="radiogroup" aria-label="Tema" className="grid gap-4 p-5 sm:grid-cols-2">
-        {THEMES.map((t) => {
-          const on = prefs.theme === t.id
+      <div role="radiogroup" aria-label={t('Tema')} className="grid gap-4 p-5 sm:grid-cols-2">
+        {THEMES.map((theme) => {
+          const on = prefs.theme === theme.id
           return (
             <button
-              key={t.id}
+              key={theme.id}
               type="button"
               role="radio"
               aria-checked={on}
-              onClick={() => updatePrefs({ theme: t.id })}
-              className={`relative rounded-2xl border p-3 text-left transition hover:bg-white/5 ${on ? 'border-accent bg-accent/10' : 'border-white/10'}`}
+              onClick={() => updatePrefs({ theme: theme.id })}
+              className={`relative rounded-2xl border p-3 text-start transition hover:bg-white/5 ${on ? 'border-accent bg-accent/10' : 'border-white/10'}`}
             >
-              <Preview theme={t} />
+              <Preview theme={theme} />
               <div className="mt-3 flex items-center justify-between gap-2 px-1">
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[var(--ink-2)]">{t.name}</p>
-                  <p className="truncate text-xs text-[var(--subtle)]">{t.description}</p>
+                  <p className="text-sm font-semibold text-[var(--ink-2)]">{t(theme.name)}</p>
+                  <p className="truncate text-xs text-[var(--subtle)]">{t(theme.description)}</p>
                 </div>
                 {on && (
                   <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent text-[var(--accent-ink)]">

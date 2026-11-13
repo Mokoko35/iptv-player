@@ -8,6 +8,7 @@ import { Player } from './Player'
 import { usePipBox } from './pip'
 import { useMedia } from './useMedia'
 import { isResumable } from './watch'
+import { t } from './i18n'
 
 interface Box {
   top: number
@@ -164,20 +165,20 @@ export function PlayerOverlay() {
       onNext={mode === 'mini' ? undefined : next}
       prevDisabled={mode === 'mini' ? undefined : episodeNav ? !episodeNav.hasPrev : undefined}
       nextDisabled={mode === 'mini' ? undefined : episodeNav ? !episodeNav.hasNext : undefined}
-      prevLabel={mode === 'mini' || !episodeNav ? undefined : 'Önceki bölüm (←)'}
-      nextLabel={mode === 'mini' || !episodeNav ? undefined : 'Sonraki bölüm (→)'}
+      prevLabel={mode === 'mini' || !episodeNav ? undefined : t('Önceki bölüm (←)')}
+      nextLabel={mode === 'mini' || !episodeNav ? undefined : t('Sonraki bölüm (→)')}
       resumePosition={mode === 'mini' ? undefined : resumeAt}
       onProgress={vod && current ? (position, duration) => saveProgress(current.url, position, duration) : undefined}
       onBack={(modal || inline) && vod ? goBack : undefined}
       trackMenus={vod && mode !== 'mini'}
-      navLabel={nav ? `${nav.position} / ${nav.total}` : episodeNav ? `Bölüm ${episodeNav.position} / ${episodeNav.total}` : undefined}
+      navLabel={nav ? `${nav.position} / ${nav.total}` : episodeNav ? t('Bölüm {position} / {total}', { position: episodeNav.position, total: episodeNav.total }) : undefined}
       topRight={
         modal || (inline && vod && isFull) ? (
           <button
             type="button"
             onClick={isFull ? goBack : minimizePlayer}
-            aria-label={isFull && vod ? 'Geri: tam ekrandan çık ve oynatıcıyı kapat' : 'Pencereyi kapat ve köşeye küçült'}
-            title={isFull && vod ? 'Geri (sağ tık da aynı işi yapar)' : 'Kapat (yayın köşede devam eder)'}
+            aria-label={isFull && vod ? t('Geri: tam ekrandan çık ve oynatıcıyı kapat') : t('Pencereyi kapat ve köşeye küçült')}
+            title={isFull && vod ? t('Geri (sağ tık da aynı işi yapar)') : t('Kapat (yayın köşede devam eder)')}
             className="grid h-11 w-11 place-items-center rounded-full bg-black/55 text-white/90 hover:bg-black/75 hover:text-white"
           >
             <X size={20} />
@@ -215,7 +216,7 @@ export function PlayerOverlay() {
     <div
       role={modal ? 'dialog' : 'complementary'}
       aria-modal={modal || undefined}
-      aria-label={`Oynatıcı: ${current.name}`}
+      aria-label={t('Oynatıcı: {name}', { name: current.name })}
       style={inline ? (box ? { position: positioned, top: box.top, left: box.left, width: box.width, height: box.height } : { visibility: 'hidden' }) : pipFree ? { left: pip.box.x, top: pip.box.y, width: pip.box.w } : undefined}
       className={containerClass}
     >
@@ -235,10 +236,10 @@ export function PlayerOverlay() {
         <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 bg-gradient-to-b from-black/80 to-transparent p-2">
           <p className="min-w-0 flex-1 truncate pl-1 pt-1.5 text-xs font-medium text-white/90">{current.name}</p>
           <div className="pointer-events-auto flex shrink-0 gap-1">
-            <button type="button" onClick={expandPlayer} aria-label="Büyüt" title="Büyüt" className="grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white/85 hover:text-white">
+            <button type="button" onClick={expandPlayer} aria-label={t('Büyüt')} title={t('Büyüt')} className="grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white/85 hover:text-white">
               <Maximize2 size={15} />
             </button>
-            <button type="button" onClick={stopPlayer} aria-label="Yayını kapat" title="Yayını kapat" className="grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white/85 hover:text-danger">
+            <button type="button" onClick={stopPlayer} aria-label={t('Yayını kapat')} title={t('Yayını kapat')} className="grid h-9 w-9 place-items-center rounded-full bg-black/55 text-white/85 hover:text-danger">
               <X size={16} />
             </button>
           </div>
@@ -284,8 +285,8 @@ function PipBar({ title, handlers, onReset, onKeyDown, onExpand, onStop }: { tit
       {...handlers}
       tabIndex={0}
       role="group"
-      aria-label="Küçük oynatıcıyı taşı (ok tuşları taşır, Shift ile boyutlar)"
-      title="Sürükleyerek taşı. Çift tık: köşeye al"
+      aria-label={t('Küçük oynatıcıyı taşı (ok tuşları taşır, Shift ile boyutlar)')}
+      title={t('Sürükleyerek taşı. Çift tık: köşeye al')}
       onDoubleClick={onReset}
       onKeyDown={onKeyDown}
       className="flex h-9 shrink-0 cursor-grab touch-none select-none items-center gap-1 bg-black/75 pl-1.5 pr-1 text-white/90 active:cursor-grabbing"
@@ -293,10 +294,10 @@ function PipBar({ title, handlers, onReset, onKeyDown, onExpand, onStop }: { tit
       <GripVertical size={16} className="shrink-0 text-white/45" aria-hidden="true" />
       <p className="min-w-0 flex-1 truncate text-xs font-medium">{title}</p>
       {IS_HOST && <PauseButton />}
-      <button type="button" {...own} onClick={onExpand} aria-label="Büyüt" title="Büyüt" className="grid h-8 w-8 place-items-center rounded-full text-white/80 hover:bg-white/10 hover:text-white">
+      <button type="button" {...own} onClick={onExpand} aria-label={t('Büyüt')} title={t('Büyüt')} className="grid h-8 w-8 place-items-center rounded-full text-white/80 hover:bg-white/10 hover:text-white">
         <Maximize2 size={15} />
       </button>
-      <button type="button" {...own} onClick={onStop} aria-label="Yayını kapat" title="Yayını kapat" className="grid h-8 w-8 place-items-center rounded-full text-white/80 hover:bg-white/10 hover:text-danger">
+      <button type="button" {...own} onClick={onStop} aria-label={t('Yayını kapat')} title={t('Yayını kapat')} className="grid h-8 w-8 place-items-center rounded-full text-white/80 hover:bg-white/10 hover:text-danger">
         <X size={16} />
       </button>
     </div>
@@ -312,8 +313,8 @@ function PauseButton() {
       onPointerDown={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
       onClick={() => send({ cmd: paused ? 'resume' : 'pause' })}
-      aria-label={paused ? 'Oynat' : 'Duraklat'}
-      title={paused ? 'Oynat' : 'Duraklat'}
+      aria-label={paused ? t('Oynat') : t('Duraklat')}
+      title={paused ? t('Oynat') : t('Duraklat')}
       className="grid h-8 w-8 place-items-center rounded-full text-white/80 hover:bg-white/10 hover:text-white"
     >
       {paused ? <Play size={15} fill="currentColor" /> : <Pause size={15} fill="currentColor" />}
@@ -325,7 +326,7 @@ function PauseButton() {
 function PipResizeStrip({ handlers }: { handlers: ReturnType<typeof usePipBox>['size'] }) {
   return (
     <div className="flex h-3.5 shrink-0 justify-end bg-black/75">
-      <div {...handlers} role="separator" aria-label="Boyutu değiştir" title="Boyutu değiştir" className="grid h-3.5 w-7 cursor-nwse-resize touch-none place-items-center text-white/55 hover:text-white">
+      <div {...handlers} role="separator" aria-label={t('Boyutu değiştir')} title={t('Boyutu değiştir')} className="grid h-3.5 w-7 cursor-nwse-resize touch-none place-items-center text-white/55 hover:text-white">
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
           <path d="M9 1 1 9M9 5 5 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>

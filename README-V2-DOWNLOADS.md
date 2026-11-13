@@ -64,3 +64,8 @@ Ayarlar > Temalar'a üç yeni tema eklendi (toplam 7):
 - **Ametist:** derin mor zemin, lavanta vurgu.
 
 Üçünde de köşelerde çok hafif bir ışıma var (masaüstü uygulamasında sayfa şeffaf olduğu için ışıma kapalıdır, video etkilenmez). Değişen dosyalar: `src/index.css`, `src/iptv/themes.ts`, `index.html` (Playfair Display yazı tipi). Seçim önceki gibi kaydediliyor.
+
+
+## Çok dilli arayüz (güncelleme)
+
+Arayüz yedi dilde: Türkçe, English, Deutsch, Русский, العربية, Español, Français. Seçici (`LanguageSelectorModal`) artık gerçekten dili değiştiriyor ve yalnızca bu yedi dili gösteriyor; bayraklar internetsiz de görünüyor. Ayrıntı ve yeni dil ekleme: `docs/DIL-RAPORU.md`.

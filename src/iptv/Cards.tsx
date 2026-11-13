@@ -5,6 +5,7 @@ import { groupOf } from './kinds'
 import type { Channel } from './types'
 import { clock } from './epgFormat'
 import type { NowNext } from './xmltv'
+import { t } from './i18n'
 
 interface CardProps {
   channel: Channel
@@ -39,7 +40,7 @@ function FavoriteButton({ favorite, name, onClick, row = false }: { favorite: bo
       type="button"
       onClick={onClick}
       aria-pressed={favorite}
-      aria-label={favorite ? `${name} favorilerden çıkar` : `${name} favorilere ekle`}
+      aria-label={favorite ? t('{name} favorilerden çıkar', { name }) : t('{name} favorilere ekle', { name })}
       className={`absolute grid h-9 w-9 place-items-center rounded-full bg-black/70 ${row ? 'right-3 top-3 sm:top-1/2 sm:-translate-y-1/2' : 'right-2 top-2'} ${
         favorite ? 'text-accent' : `text-white/80 hover:text-white ${row ? '' : 'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus-visible:opacity-100'}`
       }`}
@@ -77,9 +78,9 @@ export function ChannelCard({ channel, active, favorite, showLogo, onPlay, onFav
       <button
         type="button"
         onClick={() => onPlay(channel)}
-        aria-label={`${channel.name} kanalını oynat`}
+        aria-label={t('{name} kanalını oynat', { name: channel.name })}
         aria-current={active || undefined}
-        className={`relative block w-full overflow-hidden rounded-2xl border bg-white/[0.04] text-left transition-[transform,box-shadow,border-color] duration-200 hover:z-10 hover:scale-[1.03] hover:border-white/25 hover:shadow-xl ${
+        className={`relative block w-full overflow-hidden rounded-2xl border bg-white/[0.04] text-start transition-[transform,box-shadow,border-color] duration-200 hover:z-10 hover:scale-[1.03] hover:border-white/25 hover:shadow-xl ${
           active ? 'border-accent ring-2 ring-accent/40' : 'border-white/10'
         }`}
       >
@@ -90,7 +91,7 @@ export function ChannelCard({ channel, active, favorite, showLogo, onPlay, onFav
               <Play size={20} fill="currentColor" aria-hidden="true" />
             </span>
           </span>
-          {active && <span className="absolute left-2 top-2 rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-[var(--accent-ink)]">İZLENİYOR</span>}
+          {active && <span className="absolute left-2 top-2 rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-[var(--accent-ink)]">{t('İZLENİYOR')}</span>}
         </span>
         <span className="block p-3">
           <span className="block truncate text-sm font-medium text-[var(--ink-2)]">{channel.name}</span>
@@ -99,7 +100,7 @@ export function ChannelCard({ channel, active, favorite, showLogo, onPlay, onFav
               {epg.now && (
                 <>
                   <span className="mt-1 block truncate text-xs text-[var(--ink-2)]">
-                    <span className="font-semibold text-accent">Şimdi</span> {clock(epg.now.start)} {epg.now.title}
+                    <span className="font-semibold text-accent">{t('Şimdi')}</span> {clock(epg.now.start)} {epg.now.title}
                   </span>
                   <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-white/10" aria-hidden="true">
                     <span className="block h-full rounded-full bg-accent" style={{ width: `${Math.round(epg.progress * 100)}%` }} />
@@ -108,7 +109,7 @@ export function ChannelCard({ channel, active, favorite, showLogo, onPlay, onFav
               )}
               {epg.next && (
                 <span className="mt-1 block truncate text-[11px] text-[var(--subtle)]">
-                  <span className="font-semibold">Sonra</span> {clock(epg.next.start)} {epg.next.title}
+                  <span className="font-semibold">{t('Sonra')}</span> {clock(epg.next.start)} {epg.next.title}
                 </span>
               )}
             </>
@@ -129,9 +130,9 @@ export function PosterCard({ channel, active, favorite, showLogo, onPlay, onFavo
       <button
         type="button"
         onClick={() => onPlay(channel)}
-        aria-label={`${channel.name} ayrıntılarını aç`}
+        aria-label={t('{name} ayrıntılarını aç', { name: channel.name })}
         aria-current={active || undefined}
-        className="block w-full text-left"
+        className="block w-full text-start"
       >
         <span
           className={`relative block aspect-[2/3] overflow-hidden rounded-2xl border transition-[transform,box-shadow,border-color] duration-200 group-hover:scale-[1.04] group-hover:border-white/25 group-hover:shadow-xl ${
@@ -145,7 +146,7 @@ export function PosterCard({ channel, active, favorite, showLogo, onPlay, onFavo
               <Play size={22} fill="currentColor" aria-hidden="true" />
             </span>
           </span>
-          {active && <span className="absolute bottom-2 left-2 rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-[var(--accent-ink)]">İZLENİYOR</span>}
+          {active && <span className="absolute bottom-2 left-2 rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-[var(--accent-ink)]">{t('İZLENİYOR')}</span>}
           {channel.rating !== undefined && !active && (
             <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-black/70 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-amber-300">
               <Star size={11} fill="currentColor" aria-hidden="true" /> {channel.rating.toFixed(1)}

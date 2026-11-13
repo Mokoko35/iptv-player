@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { IS_HOST, onHostMessage, send } from './host'
 import { kindOf } from './kinds'
 import type { Channel } from './types'
+import { t, locale } from './i18n'
 
 /**
  * Downloads for offline viewing. The C# app does the downloading; this page asks for it (`download`), shows the progress it
@@ -194,7 +195,7 @@ export function handleDownloadMessage(msg: Record<string, unknown>): boolean {
         startedAt: prev?.startedAt ?? Date.now(),
         status: 'error',
         progress: prev?.progress ?? 0,
-        error: text(msg.error) ?? 'Bilinmeyen hata',
+        error: text(msg.error) ?? t('Bilinmeyen hata'),
         finishedAt: Date.now(),
         noticeUntil: Date.now() + ERROR_NOTICE_MS,
       }))
@@ -219,6 +220,6 @@ export function fileUrl(path: string): string {
 
 export function formatBytes(bytes: number | undefined): string {
   if (bytes === undefined) return '—'
-  if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} GB`
-  return `${(bytes / 1_048_576).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} MB`
+  if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toLocaleString(locale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} GB`
+  return `${(bytes / 1_048_576).toLocaleString(locale(), { minimumFractionDigits: 0, maximumFractionDigits: 0 })} MB`
 }

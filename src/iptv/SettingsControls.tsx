@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
+import { t } from './i18n'
 
 export function SoonBadge() {
-  return <span className="rounded-md border border-white/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--subtle)]">Yakında</span>
+  return <span className="rounded-md border border-white/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--subtle)]">{t('Yakında')}</span>
 }
 
 export function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {

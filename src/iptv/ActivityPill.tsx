@@ -1,6 +1,7 @@
 import { Loader2 } from 'lucide-react'
 import { megabytes } from './epgFormat'
 import { useMedia } from './useMedia'
+import { t, locale } from './i18n'
 
 /** A small pill at the top of the screen while something loads in the background. */
 export function ActivityPill() {
@@ -9,11 +10,11 @@ export function ActivityPill() {
 
   let message: string | null = null
   if (lists.busy && !adding) {
-    message = p ? `Liste yükleniyor · ${p.live.toLocaleString('tr-TR')} canlı, ${p.movie.toLocaleString('tr-TR')} film, ${p.series.toLocaleString('tr-TR')} dizi bölümü` : 'Liste yükleniyor...'
+    message = p ? t('Liste yükleniyor · {v0} canlı, {v1} film, {v2} dizi bölümü', { v0: p.live.toLocaleString(locale()), v1: p.movie.toLocaleString(locale()), v2: p.series.toLocaleString(locale()) }) : t('Liste yükleniyor...')
   } else if (catalog.loading) {
-    message = 'Diziler ve posterler portaldan yükleniyor...'
+    message = t('Diziler ve posterler portaldan yükleniyor...')
   } else if (epg.status === 'loading') {
-    message = epg.bytes > 0 ? `Program rehberi indiriliyor · ${megabytes(epg.bytes)}` : 'Program rehberi yükleniyor...'
+    message = epg.bytes > 0 ? t('Program rehberi indiriliyor · {v0}', { v0: megabytes(epg.bytes) }) : t('Program rehberi yükleniyor...')
   }
 
   if (!message) return null

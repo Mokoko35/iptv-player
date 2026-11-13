@@ -2,11 +2,12 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDownAZ, Check, ChevronDown, ChevronUp, ChevronsDown, ChevronsUp, Clapperboard, Film, Search, Tv, X } from 'lucide-react'
 import { KIND_LABEL, type Kind, categoriesOf, sortByOrder } from './kinds'
 import { useMedia } from './useMedia'
+import { t, tr, locale } from './i18n'
 
 const TABS: { id: Kind; label: string; icon: React.ReactNode }[] = [
-  { id: 'live', label: 'Canlı TV', icon: <Tv size={16} /> },
-  { id: 'movie', label: 'Filmler', icon: <Film size={16} /> },
-  { id: 'series', label: 'Diziler', icon: <Clapperboard size={16} /> },
+  { id: 'live', label: tr('Canlı TV'), icon: <Tv size={16} /> },
+  { id: 'movie', label: tr('Filmler'), icon: <Film size={16} /> },
+  { id: 'series', label: tr('Diziler'), icon: <Clapperboard size={16} /> },
 ]
 
 /** Checked = shown. The arrows set the order the categories have in the category list. */
@@ -84,7 +85,7 @@ function ModalBody({ kind, onKindChange }: { kind: Kind; onKindChange: (k: Kind)
     const next = names.filter((n) => n !== name)
     next.splice(to, 0, name)
     setNames(next)
-    setNote(`${name} yukarı taşındı: ${to + 1}. sıra`)
+    setNote(t('{name} yukarı taşındı: {v1}. sıra', { name, v1: to + 1 }))
   }
 
   const moveDown = (name: string) => {
@@ -101,26 +102,26 @@ function ModalBody({ kind, onKindChange }: { kind: Kind; onKindChange: (k: Kind)
     const next = names.filter((n) => n !== name)
     next.splice(to, 0, name)
     setNames(next)
-    setNote(`${name} aşağı taşındı: ${to + 1}. sıra`)
+    setNote(t('{name} aşağı taşındı: {v1}. sıra', { name, v1: to + 1 }))
   }
 
   const moveBottom = (name: string) => {
     if (names[names.length - 1] === name) return
     pinScroll()
     setNames([...names.filter((n) => n !== name), name])
-    setNote(`${name} en alta taşındı`)
+    setNote(t('{name} en alta taşındı', { name }))
   }
 
   const moveTop = (name: string) => {
     if (names[0] === name) return
     pinScroll()
     setNames([name, ...names.filter((n) => n !== name)])
-    setNote(`${name} en üste taşındı`)
+    setNote(t('{name} en üste taşındı', { name }))
   }
 
   const resetOrder = () => {
     setNames([...names].sort((a, b) => a.localeCompare(b, 'tr')))
-    setNote('Sıra A-Z olarak sıfırlandı')
+    setNote(t('Sıra A-Z olarak sıfırlandı'))
   }
 
   const save = () => {
@@ -145,12 +146,10 @@ function ModalBody({ kind, onKindChange }: { kind: Kind; onKindChange: (k: Kind)
       >
         <div className="flex items-start justify-between gap-3 px-5 pb-3 pt-5">
           <div>
-            <h2 id="manage-title" className="display text-xl font-semibold">
-              Kategorileri Yönet
-            </h2>
-            <p className="mt-0.5 text-xs text-[var(--subtle)]">işaretliler gösterilir, oklar sırayı belirler</p>
+            <h2 id="manage-title" className="display text-xl font-semibold">{t('Kategorileri Yönet')}</h2>
+            <p className="mt-0.5 text-xs text-[var(--subtle)]">{t('işaretliler gösterilir, oklar sırayı belirler')}</p>
           </div>
-          <button type="button" onClick={closeManage} aria-label="Kapat" className="grid h-10 w-10 place-items-center rounded-full text-[var(--subtle)] hover:bg-white/10 hover:text-[var(--ink)]">
+          <button type="button" onClick={closeManage} aria-label={t('Kapat')} className="grid h-10 w-10 place-items-center rounded-full text-[var(--subtle)] hover:bg-white/10 hover:text-[var(--ink)]">
             <X size={18} />
           </button>
         </div>
@@ -168,7 +167,7 @@ function ModalBody({ kind, onKindChange }: { kind: Kind; onKindChange: (k: Kind)
               }`}
             >
               {tab.icon}
-              {tab.label}
+              {t(tab.label)}
             </button>
           ))}
         </div>
@@ -176,26 +175,22 @@ function ModalBody({ kind, onKindChange }: { kind: Kind; onKindChange: (k: Kind)
         <div className="space-y-3 px-5 pb-3">
           <div className="relative">
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--subtle)]" aria-hidden="true" />
-            <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Kategori ara" aria-label="Kategori ara" className="field !pl-9" />
+            <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('Kategori ara')} aria-label={t('Kategori ara')} className="field !pl-9" />
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={() => setMany(shown, false)} className="btn-ghost !min-h-9 flex-1 text-xs">
-              Tümünü seç
-            </button>
-            <button type="button" onClick={() => setMany(shown, true)} className="btn-ghost !min-h-9 flex-1 text-xs">
-              Hiçbirini seçme
-            </button>
-            <button type="button" onClick={resetOrder} title="Sırayı A-Z yap" aria-label="Sırayı A-Z yap" className="btn-ghost !min-h-9 !px-3 text-xs">
+            <button type="button" onClick={() => setMany(shown, false)} className="btn-ghost !min-h-9 flex-1 text-xs">{t('Tümünü seç')}</button>
+            <button type="button" onClick={() => setMany(shown, true)} className="btn-ghost !min-h-9 flex-1 text-xs">{t('Hiçbirini seçme')}</button>
+            <button type="button" onClick={resetOrder} title={t('Sırayı A-Z yap')} aria-label={t('Sırayı A-Z yap')} className="btn-ghost !min-h-9 !px-3 text-xs">
               <ArrowDownAZ size={15} aria-hidden="true" />
             </button>
           </div>
         </div>
 
-        <ul ref={scroller} className="flex min-h-0 flex-1 flex-col overflow-y-auto border-y border-white/10 px-2 py-1 [overflow-anchor:none]" aria-label="Kategoriler">
+        <ul ref={scroller} className="flex min-h-0 flex-1 flex-col overflow-y-auto border-y border-white/10 px-2 py-1 [overflow-anchor:none]" aria-label={t('Kategoriler')}>
           {names.length === 0 ? (
-            <li className="p-6 text-center text-sm text-[var(--subtle)]">Bu türde kategori yok.</li>
+            <li className="p-6 text-center text-sm text-[var(--subtle)]">{t('Bu türde kategori yok.')}</li>
           ) : shown.length === 0 ? (
-            <li className="p-6 text-center text-sm text-[var(--subtle)]">Eşleşen kategori yok.</li>
+            <li className="p-6 text-center text-sm text-[var(--subtle)]">{t('Eşleşen kategori yok.')}</li>
           ) : (
             domOrder.map((name) => {
               const on = !hidden.has(name)
@@ -212,18 +207,18 @@ function ModalBody({ kind, onKindChange }: { kind: Kind; onKindChange: (k: Kind)
                       {on && <Check size={14} strokeWidth={3} />}
                     </span>
                     <span className={`min-w-0 flex-1 truncate text-sm ${on ? 'text-[var(--ink-2)]' : 'text-[var(--subtle)]'}`}>{name}</span>
-                    <span className="shrink-0 text-xs tabular-nums text-[var(--subtle)]">{(counts.get(name) ?? 0).toLocaleString('tr-TR')}</span>
+                    <span className="shrink-0 text-xs tabular-nums text-[var(--subtle)]">{(counts.get(name) ?? 0).toLocaleString(locale())}</span>
                   </label>
-                  <button type="button" onClick={() => moveTop(name)} disabled={names[0] === name} aria-label={`${name} en üste taşı`} title="En üste" className={iconButton}>
+                  <button type="button" onClick={() => moveTop(name)} disabled={names[0] === name} aria-label={t('{name} en üste taşı', { name })} title={t('En üste')} className={iconButton}>
                     <ChevronsUp size={18} />
                   </button>
-                  <button type="button" onClick={() => moveUp(name)} disabled={firstShown === name} aria-label={`${name} bir yukarı taşı`} title="1 yukarı" className={iconButton}>
+                  <button type="button" onClick={() => moveUp(name)} disabled={firstShown === name} aria-label={t('{name} bir yukarı taşı', { name })} title={t('1 yukarı')} className={iconButton}>
                     <ChevronUp size={18} />
                   </button>
-                  <button type="button" onClick={() => moveDown(name)} disabled={lastShown === name} aria-label={`${name} bir aşağı taşı`} title="1 aşağı" className={iconButton}>
+                  <button type="button" onClick={() => moveDown(name)} disabled={lastShown === name} aria-label={t('{name} bir aşağı taşı', { name })} title={t('1 aşağı')} className={iconButton}>
                     <ChevronDown size={18} />
                   </button>
-                  <button type="button" onClick={() => moveBottom(name)} disabled={names[names.length - 1] === name} aria-label={`${name} en alta taşı`} title="En alta" className={iconButton}>
+                  <button type="button" onClick={() => moveBottom(name)} disabled={names[names.length - 1] === name} aria-label={t('{name} en alta taşı', { name })} title={t('En alta')} className={iconButton}>
                     <ChevronsDown size={18} />
                   </button>
                 </li>
@@ -237,15 +232,10 @@ function ModalBody({ kind, onKindChange }: { kind: Kind; onKindChange: (k: Kind)
 
         <div className="flex items-center justify-between gap-3 px-5 py-4">
           <p className="text-xs tabular-nums text-[var(--subtle)]">
-            {visibleCount} / {names.length} gösteriliyor
-          </p>
+            {visibleCount} / {names.length}{' '}{t('gösteriliyor')}</p>
           <div className="flex gap-2">
-            <button type="button" onClick={closeManage} className="btn-ghost">
-              İptal
-            </button>
-            <button type="button" onClick={save} className="btn-primary">
-              Kaydet
-            </button>
+            <button type="button" onClick={closeManage} className="btn-ghost">{t('İptal')}</button>
+            <button type="button" onClick={save} className="btn-primary">{t('Kaydet')}</button>
           </div>
         </div>
       </div>

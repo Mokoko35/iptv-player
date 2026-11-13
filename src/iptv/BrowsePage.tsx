@@ -13,6 +13,7 @@ import { ProgressiveGrid } from './ProgressiveGrid'
 import { SkeletonGrid } from './Skeletons'
 import { useMedia } from './useMedia'
 import { Segmented } from './SettingsControls'
+import { t, tr, locale } from './i18n'
 
 // Columns fill whatever width is left next to the category list, so the grid always uses the full space.
 const LIVE_GRID: Record<CardSize, string> = {
@@ -27,9 +28,9 @@ const POSTER_GRID: Record<CardSize, string> = {
 }
 
 const EMPTY_HINT: Record<Kind, string> = {
-  live: 'Bu listede canlı kanal bulunamadı.',
-  movie: 'Bu listede film bulunamadı. Filmler çoğunlukla Xtream portal listelerinde bulunur.',
-  series: 'Bu listede dizi bulunamadı. Diziler çoğunlukla Xtream portal listelerinde bulunur.',
+  live: tr('Bu listede canlı kanal bulunamadı.'),
+  movie: tr('Bu listede film bulunamadı. Filmler çoğunlukla Xtream portal listelerinde bulunur.'),
+  series: tr('Bu listede dizi bulunamadı. Diziler çoğunlukla Xtream portal listelerinde bulunur.'),
 }
 
 export function BrowsePage({ kind }: { kind: Kind }) {
@@ -50,13 +51,12 @@ export function BrowsePage({ kind }: { kind: Kind }) {
             <div className="min-w-0">
               <Breadcrumb kind={kind} selected={selected} />
               <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm tabular-nums text-[var(--subtle)]">
-                {items.length.toLocaleString('tr-TR')} öğe
-                {activeCountries.length > 0 && (
-                  <button type="button" onClick={() => setCountries([])} aria-label="Ülke filtresini temizle" className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 text-xs text-accent">
+                {items.length.toLocaleString(locale())}{' '}{t('öğe')}{activeCountries.length > 0 && (
+                  <button type="button" onClick={() => setCountries([])} aria-label={t('Ülke filtresini temizle')} className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 text-xs text-accent">
                     <span className="flag" aria-hidden="true">
                       {activeCountries.slice(0, 4).map(flagOf).join(' ')}
                     </span>
-                    {activeCountries.length > 4 ? `${activeCountries.length} ülke` : activeCountries.join(' ')}
+                    {activeCountries.length > 4 ? t('{length} ülke', { length: activeCountries.length }) : activeCountries.join(' ')}
                     <X size={12} aria-hidden="true" />
                   </button>
                 )}
@@ -64,23 +64,23 @@ export function BrowsePage({ kind }: { kind: Kind }) {
             </div>
             {hasAny && (
               <>
-                <div className="mr-3 hidden sm:block">
+                <div className="me-3 hidden sm:block">
                   <Segmented<CardSize>
-                    label="Kart boyutu"
+                    label={t('Kart boyutu')}
                     value={prefs.cardSize}
                     onChange={(cardSize) => updatePrefs({ cardSize })}
                     options={[
-                      { value: 'sm', label: 'Küçük' },
-                      { value: 'md', label: 'Orta' },
-                      { value: 'lg', label: 'Büyük' },
+                      { value: 'sm', label: t('Küçük') },
+                      { value: 'md', label: t('Orta') },
+                      { value: 'lg', label: t('Büyük') },
                     ]}
                   />
                 </div>
                 <div className="relative w-full sm:w-72">
                   <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--subtle)]" aria-hidden="true" />
-                  <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`${KIND_LABEL[kind]} içinde ara`} aria-label="Ara" className="field !pl-9 !pr-9" />
+                  <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('{v0} içinde ara', { v0: KIND_LABEL[kind] })} aria-label={t('Ara')} className="field !pl-9 !pr-9" />
                   {query && (
-                    <button type="button" onClick={() => setQuery('')} aria-label="Aramayı temizle" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-[var(--subtle)] hover:text-[var(--ink)]">
+                    <button type="button" onClick={() => setQuery('')} aria-label={t('Aramayı temizle')} className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-[var(--subtle)] hover:text-[var(--ink)]">
                       <X size={15} />
                     </button>
                   )}
@@ -99,43 +99,34 @@ export function BrowsePage({ kind }: { kind: Kind }) {
           {showRail && <CategoryChips {...rail} />}
 
           {kind === 'series' && catalog.error && xtream && (
-            <p className="mb-4 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-[var(--ink-2)]">
-              Dizi listesi portaldan alınamadı. {catalog.error} Listedeki bölümler tek tek gösteriliyor.
-            </p>
+            <p className="mb-4 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-[var(--ink-2)]">{t('Dizi listesi portaldan alınamadı.')}{' '}{catalog.error}{' '}{t('Listedeki bölümler tek tek gösteriliyor.')}</p>
           )}
 
           {lists.starting ? (
             <SkeletonGrid poster={poster} className={gridClass} />
           ) : kind === 'series' && catalog.loading && !hasAny ? (
             <div>
-              <p className="mb-4 text-sm text-[var(--subtle)]">Diziler portaldan yükleniyor...</p>
+              <p className="mb-4 text-sm text-[var(--subtle)]">{t('Diziler portaldan yükleniyor...')}</p>
               <SkeletonGrid poster className={POSTER_GRID[prefs.cardSize]} />
             </div>
           ) : lists.playlists.length === 0 ? (
-            <Empty icon="add">M3U adresi, portal girişi veya dosyayla ilk listeni ekle.</Empty>
+            <Empty icon="add">{t('M3U adresi, portal girişi veya dosyayla ilk listeni ekle.')}</Empty>
           ) : !hasAny && activeCountries.length > 0 ? (
-            <Empty icon="none">
-              Seçili ülkelerde bu türde içerik yok.
-              <div className="mt-4">
-                <button type="button" onClick={() => setCountries([])} className="btn-primary">
-                  Ülke filtresini temizle
-                </button>
+            <Empty icon="none">{t('Seçili ülkelerde bu türde içerik yok.')}<div className="mt-4">
+                <button type="button" onClick={() => setCountries([])} className="btn-primary">{t('Ülke filtresini temizle')}</button>
               </div>
             </Empty>
           ) : !hasAny ? (
-            <Empty icon="none">{EMPTY_HINT[kind]}</Empty>
+            <Empty icon="none">{t(EMPTY_HINT[kind])}</Empty>
           ) : base.length === 0 ? (
-            <Empty icon="manage">
-              Bu türdeki tüm kategoriler gizli.
-              <div className="mt-4">
+            <Empty icon="manage">{t('Bu türdeki tüm kategoriler gizli.')}<div className="mt-4">
                 <button type="button" onClick={() => openManage(kind)} className="btn-primary">
-                  <SlidersHorizontal size={16} aria-hidden="true" /> Kategorileri yönet
-                </button>
+                  <SlidersHorizontal size={16} aria-hidden="true" />{' '}{t('Kategorileri yönet')}</button>
               </div>
             </Empty>
           ) : items.length === 0 ? (
             <Empty icon="none">
-              {selected === FAVORITES && deferred.trim() === '' ? 'Bu bölümde henüz favorin yok. Kartlardaki kalbe dokunarak favori ekleyebilirsin.' : 'Eşleşen sonuç yok.'}
+              {selected === FAVORITES && deferred.trim() === '' ? t('Bu bölümde henüz favorin yok. Kartlardaki kalbe dokunarak favori ekleyebilirsin.') : t('Eşleşen sonuç yok.')}
             </Empty>
           ) : (
             <ProgressiveGrid

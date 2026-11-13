@@ -6,6 +6,7 @@ import { dateTime } from './epgFormat'
 import { IS_HOST } from './host'
 import type { Channel } from './types'
 import { useMedia } from './useMedia'
+import { t } from './i18n'
 
 type Tab = 'movie' | 'series'
 
@@ -23,14 +24,14 @@ function playable(item: DownloadItem): Channel {
     name: item.title,
     url: fileUrl(item.path ?? ''),
     logo: item.logo,
-    group: 'İndirilenler',
-    subtitle: ep ? `Sezon ${ep.season} · Bölüm ${ep.episode}` : undefined,
+    group: t('İndirilenler'),
+    subtitle: ep ? t('Sezon {season} · Bölüm {episode}', { season: ep.season, episode: ep.episode }) : undefined,
   }
 }
 
 function Card({ item, onPlay }: { item: DownloadItem; onPlay: () => void }) {
   const ep = episodeOf(item.title)
-  const label = ep ? `Sezon ${ep.season} · Bölüm ${ep.episode}` : item.title
+  const label = ep ? t('Sezon {season} · Bölüm {episode}', { season: ep.season, episode: ep.episode }) : item.title
   const done = item.status === 'done' && !!item.path
   return (
     <article className="group relative hover:z-10">
@@ -38,8 +39,8 @@ function Card({ item, onPlay }: { item: DownloadItem; onPlay: () => void }) {
         type="button"
         onClick={onPlay}
         disabled={!done}
-        aria-label={done ? `${item.title} oynat` : item.title}
-        className="block w-full text-left disabled:cursor-default"
+        aria-label={done ? t('{title} oynat', { title: item.title }) : item.title}
+        className="block w-full text-start disabled:cursor-default"
       >
         <span className={`relative block aspect-[2/3] overflow-hidden rounded-2xl border border-white/10 transition-[transform,box-shadow,border-color] duration-200 group-hover:border-white/25 group-hover:shadow-xl ${done ? 'group-hover:scale-[1.03]' : ''}`}>
           <PosterArt key={item.logo ?? item.title} name={ep ? ep.series : item.title} src={item.logo} className="h-full w-full" />
@@ -55,11 +56,10 @@ function Card({ item, onPlay }: { item: DownloadItem; onPlay: () => void }) {
             <span className="absolute inset-x-0 bottom-0 bg-black/75 p-2.5">
               <span className="flex items-center justify-between gap-2 text-xs tabular-nums text-white/90">
                 <span className="inline-flex items-center gap-1.5">
-                  <Loader2 size={13} className="animate-spin" aria-hidden="true" /> İndiriliyor
-                </span>
+                  <Loader2 size={13} className="animate-spin" aria-hidden="true" />{' '}{t('İndiriliyor')}</span>
                 %{Math.round(item.progress)}
               </span>
-              <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-white/20" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(item.progress)} aria-label={`${item.title} indirme durumu`}>
+              <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-white/20" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(item.progress)} aria-label={t('{title} indirme durumu', { title: item.title })}>
                 <span className="block h-full rounded-full bg-accent" style={{ width: `${item.progress}%` }} />
               </span>
             </span>
@@ -68,7 +68,7 @@ function Card({ item, onPlay }: { item: DownloadItem; onPlay: () => void }) {
             <span className="absolute inset-0 grid place-items-center bg-black/70 p-3 text-center">
               <span>
                 <AlertTriangle size={22} className="mx-auto text-danger" aria-hidden="true" />
-                <span className="mt-1.5 block text-pretty text-xs text-white/90">İndirilemedi: {item.error}</span>
+                <span className="mt-1.5 block text-pretty text-xs text-white/90">{t('İndirilemedi:')}{' '}{item.error}</span>
               </span>
             </span>
           )}
@@ -77,7 +77,7 @@ function Card({ item, onPlay }: { item: DownloadItem; onPlay: () => void }) {
           {label}
         </span>
         <span className="block truncate text-xs text-[var(--subtle)]">
-          {item.status === 'done' ? `${formatBytes(item.size)}${item.finishedAt ? ` · ${dateTime(item.finishedAt)}` : ''}` : item.status === 'active' ? 'İndiriliyor...' : 'Hata'}
+          {item.status === 'done' ? `${formatBytes(item.size)}${item.finishedAt ? ` · ${dateTime(item.finishedAt)}` : ''}` : item.status === 'active' ? t('İndiriliyor...') : t('Hata')}
         </span>
       </button>
 
@@ -85,13 +85,11 @@ function Card({ item, onPlay }: { item: DownloadItem; onPlay: () => void }) {
       <div className="mt-1.5 flex items-center gap-1">
         {item.status === 'done' && item.path && (
           <button type="button" onClick={() => openDownloadFolder(item.path ?? '')} className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-xs text-[var(--subtle)] hover:bg-white/10 hover:text-[var(--ink)]">
-            <FolderOpen size={14} aria-hidden="true" /> Klasörü Aç
-          </button>
+            <FolderOpen size={14} aria-hidden="true" />{' '}{t('Klasörü Aç')}</button>
         )}
         {item.status === 'active' && (
           <button type="button" onClick={() => cancelDownload(item.title)} className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-xs text-[var(--subtle)] hover:bg-white/10 hover:text-danger">
-            <X size={14} aria-hidden="true" /> İptal
-          </button>
+            <X size={14} aria-hidden="true" />{' '}{t('İptal')}</button>
         )}
         {item.status === 'error' && (
           <button
@@ -99,15 +97,14 @@ function Card({ item, onPlay }: { item: DownloadItem; onPlay: () => void }) {
             onClick={() => requestDownload({ id: item.title, name: item.title, url: item.url, logo: item.logo })}
             className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-xs text-[var(--subtle)] hover:bg-white/10 hover:text-[var(--ink)]"
           >
-            <RotateCcw size={14} aria-hidden="true" /> Tekrar dene
-          </button>
+            <RotateCcw size={14} aria-hidden="true" />{' '}{t('Tekrar dene')}</button>
         )}
         {item.status !== 'active' && (
           <button
             type="button"
             onClick={() => removeDownload(item.title)}
-            aria-label={`${item.title} listeden kaldır`}
-            title="Listeden kaldır (dosya silinmez)"
+            aria-label={t('{title} listeden kaldır', { title: item.title })}
+            title={t('Listeden kaldır (dosya silinmez)')}
             className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[var(--subtle)] hover:bg-white/10 hover:text-danger"
           >
             <Trash2 size={15} aria-hidden="true" />
@@ -156,17 +153,17 @@ export function DownloadsPage() {
   }
 
   const tabs: { id: Tab; label: string; count: number; icon: typeof Clapperboard }[] = [
-    { id: 'movie', label: 'Filmler', count: movies.length, icon: Clapperboard },
-    { id: 'series', label: 'Diziler', count: series.length, icon: Library },
+    { id: 'movie', label: t('Filmler'), count: movies.length, icon: Clapperboard },
+    { id: 'series', label: t('Diziler'), count: series.length, icon: Library },
   ]
 
   return (
     <div>
-      <h1 className="display text-3xl font-semibold">İndirilenler</h1>
-      <p className="mt-1 text-sm text-[var(--subtle)]">Cihazına indirdiğin film ve dizi bölümleri. Birine tıklayınca oynar; internet gerekmez.</p>
-      {!IS_HOST && <p className="mt-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-[var(--subtle)]">İndirme yalnızca masaüstü uygulamasında çalışır. Burası uygulamada indirdiklerini listeler.</p>}
+      <h1 className="display text-3xl font-semibold">{t('İndirilenler')}</h1>
+      <p className="mt-1 text-sm text-[var(--subtle)]">{t('Cihazına indirdiğin film ve dizi bölümleri. Birine tıklayınca oynar; internet gerekmez.')}</p>
+      {!IS_HOST && <p className="mt-3 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-[var(--subtle)]">{t('İndirme yalnızca masaüstü uygulamasında çalışır. Burası uygulamada indirdiklerini listeler.')}</p>}
 
-      <div role="tablist" aria-label="İndirilenler" className="mt-5 flex gap-1 border-b border-white/10">
+      <div role="tablist" aria-label={t('İndirilenler')} className="mt-5 flex gap-1 border-b border-white/10">
         {tabs.map((t) => {
           const on = tab === t.id
           return (
@@ -190,7 +187,7 @@ export function DownloadsPage() {
       <div id="downloads-panel" role="tabpanel" aria-labelledby={`downloads-tab-${tab}`} className="mt-6">
         {tab === 'movie' && (
           movies.length === 0 ? (
-            <p className="py-12 text-center text-sm text-[var(--subtle)]">Henüz indirilmiş film yok. Bir filmin sayfasındaki "İndir" düğmesini kullan.</p>
+            <p className="py-12 text-center text-sm text-[var(--subtle)]">{t('Henüz indirilmiş film yok. Bir filmin sayfasındaki "İndir" düğmesini kullan.')}</p>
           ) : (
             <div className={GRID}>
               {movies.map((item) => (
@@ -201,14 +198,14 @@ export function DownloadsPage() {
         )}
         {tab === 'series' && (
           groups.length === 0 ? (
-            <p className="py-12 text-center text-sm text-[var(--subtle)]">Henüz indirilmiş dizi bölümü yok. Bir dizinin sayfasında bölümün yanındaki indirme düğmesini kullan.</p>
+            <p className="py-12 text-center text-sm text-[var(--subtle)]">{t('Henüz indirilmiş dizi bölümü yok. Bir dizinin sayfasında bölümün yanındaki indirme düğmesini kullan.')}</p>
           ) : (
             <div className="space-y-8">
               {groups.map(([name, list]) => (
                 <section key={name} aria-label={name}>
                   <h2 className="display mb-3 flex items-baseline gap-2 text-lg font-semibold">
                     {name}
-                    <span className="text-xs font-normal tabular-nums text-[var(--subtle)]">{list.length} bölüm</span>
+                    <span className="text-xs font-normal tabular-nums text-[var(--subtle)]">{list.length}{' '}{t('bölüm')}</span>
                   </h2>
                   <div className={GRID}>
                     {list.map((item) => (

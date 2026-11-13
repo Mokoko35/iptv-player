@@ -1,12 +1,13 @@
 import type { Kind } from './kinds'
 import { DEFAULT_THEME, THEMES, type ThemeId } from './themes'
+import { tr } from './i18n'
 
 export type CardSize = 'sm' | 'md' | 'lg'
 export type EpgRefresh = 'off' | '6' | '12' | '24'
 /** The shape of the picture: the film's own ('fit'), filled and cropped, stretched, or forced to 16:9 / 4:3. */
 export type AspectMode = 'fit' | 'fill' | 'stretch' | '16:9' | '4:3'
 export const ASPECT_MODES: AspectMode[] = ['fit', 'fill', 'stretch', '16:9', '4:3']
-export const ASPECT_LABELS: Record<AspectMode, string> = { fit: 'Orijinal oran', fill: 'Doldur (kırp)', stretch: 'Uzat', '16:9': '16:9', '4:3': '4:3' }
+export const ASPECT_LABELS: Record<AspectMode, string> = { fit: tr('Orijinal oran'), fill: tr('Doldur (kırp)'), stretch: tr('Uzat'), '16:9': '16:9', '4:3': '4:3' }
 
 export interface Prefs {
   theme: ThemeId

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Tv } from 'lucide-react'
+import { t } from './i18n'
 
 const SHOW_MS = 1600
 const FADE_MS = 450
@@ -22,7 +23,7 @@ export function Splash() {
   return (
     <div
       role="status"
-      aria-label="IPTV Oynatıcı yükleniyor"
+      aria-label={t('IPTV Oynatıcı yükleniyor')}
       className="fixed inset-0 z-[100] grid place-items-center bg-canvas transition-opacity"
       style={{ opacity: phase === 'fade' ? 0 : 1, transitionDuration: `${FADE_MS}ms` }}
     >
@@ -31,12 +32,8 @@ export function Splash() {
         <div className="splash-logo grid h-24 w-24 place-items-center rounded-3xl bg-gradient-to-br from-[var(--accent-hover)] to-accent text-[var(--accent-ink)]">
           <Tv size={46} strokeWidth={2.2} aria-hidden="true" />
         </div>
-        <h1 className="display splash-rise mt-6 text-4xl font-semibold tracking-tight" style={{ animationDelay: '0.15s' }}>
-          IPTV
-        </h1>
-        <p className="splash-rise mt-1 text-xs uppercase tracking-[0.3em] text-[var(--subtle)]" style={{ animationDelay: '0.3s' }}>
-          Canlı TV · Filmler · Diziler
-        </p>
+        <h1 className="display splash-rise mt-6 text-4xl font-semibold tracking-tight" style={{ animationDelay: '0.15s' }}>{t('IPTV')}</h1>
+        <p className="splash-rise mt-1 text-xs uppercase tracking-[0.3em] text-[var(--subtle)]" style={{ animationDelay: '0.3s' }}>{t('Canlı TV · Filmler · Diziler')}</p>
         <div className="mt-8 h-1 w-44 overflow-hidden rounded-full bg-white/10">
           <div className="splash-bar h-full w-2/5 rounded-full bg-accent" />
         </div>

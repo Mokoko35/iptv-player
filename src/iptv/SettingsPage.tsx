@@ -12,14 +12,17 @@ import { Row, Section, Segmented, Toggle } from './SettingsControls'
 import { ThemePicker } from './ThemePicker'
 import { testTmdbKey } from './tmdb'
 import { useMedia } from './useMedia'
+import { LANGUAGES, locale, t, tr } from './i18n'
+import { flagOf } from './countries'
+import { LanguageSelectorModal } from './LanguageSelectorModal'
 
 const TABS: { id: SettingsTab; label: string }[] = [
-  { id: 'general', label: 'Genel' },
-  { id: 'playback', label: 'Oynatma' },
-  { id: 'epg', label: 'EPG' },
-  { id: 'categories', label: 'Kategori Yönetimi' },
-  { id: 'themes', label: 'Temalar' },
-  { id: 'downloads', label: 'İndirilenler' },
+  { id: 'general', label: tr('Genel') },
+  { id: 'playback', label: tr('Oynatma') },
+  { id: 'epg', label: tr('EPG') },
+  { id: 'categories', label: tr('Kategori Yönetimi') },
+  { id: 'themes', label: tr('Temalar') },
+  { id: 'downloads', label: tr('İndirilenler') },
 ]
 
 /** TMDB key: posters, summaries and cast looked up by the cleaned title. Off until a key is entered. */
@@ -33,8 +36,8 @@ function TmdbSettings() {
   }
 
   return (
-    <Section title="Film ve dizi bilgileri (TMDB)" description="Listedeki başlık temizlenir ve TMDB'de aranır. Doğru afiş, özet, oyuncular ve puan film ve dizi sayfalarında görünür.">
-      <Row label="TMDB anahtarı" hint="themoviedb.org'da ücretsiz hesap açıp Ayarlar > API bölümünden anahtarı (API Key veya Read Access Token) al. Yalnızca bu cihazda saklanır. Boş bırakırsan yalnızca portalın kendi bilgileri kullanılır.">
+    <Section title={t('Film ve dizi bilgileri (TMDB)')} description={t('Listedeki başlık temizlenir ve TMDB\'de aranır. Doğru afiş, özet, oyuncular ve puan film ve dizi sayfalarında görünür.')}>
+      <Row label={t('TMDB anahtarı')} hint={t('themoviedb.org\'da ücretsiz hesap açıp Ayarlar > API bölümünden anahtarı (API Key veya Read Access Token) al. Yalnızca bu cihazda saklanır. Boş bırakırsan yalnızca portalın kendi bilgileri kullanılır.')}>
         <div className="flex w-full flex-col gap-2 sm:w-72">
           <input
             type="password"
@@ -45,19 +48,17 @@ function TmdbSettings() {
               updatePrefs({ tmdbKey: e.target.value.trim() })
               setState('idle')
             }}
-            placeholder="TMDB anahtarı"
-            aria-label="TMDB anahtarı"
+            placeholder={t('TMDB anahtarı')}
+            aria-label={t('TMDB anahtarı')}
             className="field"
           />
           <div className="flex items-center gap-3">
             <button type="button" onClick={() => void test()} disabled={!prefs.tmdbKey || state === 'testing'} className="btn-ghost !min-h-9 text-xs">
-              {state === 'testing' ? 'Deneniyor...' : 'Anahtarı dene'}
+              {state === 'testing' ? t('Deneniyor...') : t('Anahtarı dene')}
             </button>
-            {state === 'ok' && <span role="status" className="text-sm text-[var(--success)]">Anahtar çalışıyor.</span>}
+            {state === 'ok' && <span role="status" className="text-sm text-[var(--success)]">{t('Anahtar çalışıyor.')}</span>}
             {state === 'bad' && (
-              <span role="alert" className="text-sm text-danger">
-                Anahtar kabul edilmedi.
-              </span>
+              <span role="alert" className="text-sm text-danger">{t('Anahtar kabul edilmedi.')}</span>
             )}
           </div>
         </div>
@@ -88,9 +89,9 @@ function AdultFilter() {
     if (flow.step === 'create') setPinSet(true)
     if (flow.after === 'toggle' && flow.next !== undefined) {
       updatePrefs({ adultFilter: flow.next })
-      setNotice(flow.next ? 'Yetişkin içerik gizlendi.' : 'Yetişkin içerik gösteriliyor.')
+      setNotice(flow.next ? t('Yetişkin içerik gizlendi.') : t('Yetişkin içerik gösteriliyor.'))
     } else if (flow.after === 'change') {
-      setNotice('PIN değiştirildi.')
+      setNotice(t('PIN değiştirildi.'))
     }
     setFlow(null)
   }
@@ -99,22 +100,22 @@ function AdultFilter() {
     if (!flow) return null
     if (flow.step === 'create') {
       return flow.after === 'change'
-        ? { title: 'Yeni PIN', description: 'Yeni 4 haneli PIN\'ini gir.' }
-        : { title: 'PIN belirle', description: 'Yetişkin içerik ayarını değiştirmek için 4 haneli bir PIN belirle. Unutma: PIN bu cihazda saklanır.' }
+        ? { title: t('Yeni PIN'), description: t('Yeni 4 haneli PIN\'ini gir.') }
+        : { title: t('PIN belirle'), description: t('Yetişkin içerik ayarını değiştirmek için 4 haneli bir PIN belirle. Unutma: PIN bu cihazda saklanır.') }
     }
     return flow.after === 'change'
-      ? { title: 'Mevcut PIN', description: 'PIN\'ini değiştirmek için önce mevcut PIN\'ini gir.' }
-      : { title: flow.next ? 'Yetişkin içeriği gizle' : 'Yetişkin içeriği göster', description: 'Devam etmek için 4 haneli PIN\'ini gir.' }
+      ? { title: t('Mevcut PIN'), description: t('PIN\'ini değiştirmek için önce mevcut PIN\'ini gir.') }
+      : { title: flow.next ? t('Yetişkin içeriği gizle') : t('Yetişkin içeriği göster'), description: t('Devam etmek için 4 haneli PIN\'ini gir.') }
   })()
 
   return (
-    <Section title="Yetişkin içeriği" description="XXX, Adult, +18 gibi etiketler taşıyan kategoriler ve kanallar listelerden çıkarılır.">
-      <Row label="Yetişkin içeriğini gizle" hint="Açıkken bu içerik her yerde gizlenir. Ayarı değiştirmek için PIN gerekir.">
-        <Toggle label="Yetişkin içeriğini gizle" checked={prefs.adultFilter} onChange={(next) => start('toggle', next)} />
+    <Section title={t('Yetişkin içeriği')} description={t('XXX, Adult, +18 gibi etiketler taşıyan kategoriler ve kanallar listelerden çıkarılır.')}>
+      <Row label={t('Yetişkin içeriğini gizle')} hint={t('Açıkken bu içerik her yerde gizlenir. Ayarı değiştirmek için PIN gerekir.')}>
+        <Toggle label={t('Yetişkin içeriğini gizle')} checked={prefs.adultFilter} onChange={(next) => start('toggle', next)} />
       </Row>
-      <Row label="PIN" hint="4 haneli PIN bu cihazın yerel depolamasında, karıştırılmış (hash) olarak saklanır. Unutursan tarayıcı verilerini temizleyerek sıfırlayabilirsin.">
+      <Row label={t('PIN')} hint={t('4 haneli PIN bu cihazın yerel depolamasında, karıştırılmış (hash) olarak saklanır. Unutursan tarayıcı verilerini temizleyerek sıfırlayabilirsin.')}>
         <button type="button" onClick={() => start('change')} className="btn-ghost">
-          <ShieldCheck size={16} aria-hidden="true" /> {pinSet ? 'PIN\'i değiştir' : 'PIN belirle'}
+          <ShieldCheck size={16} aria-hidden="true" /> {pinSet ? t('PIN\'i değiştir') : t('PIN belirle')}
         </button>
       </Row>
       {notice && (
@@ -128,29 +129,40 @@ function AdultFilter() {
 }
 
 function General() {
-  const { prefs, updatePrefs } = useMedia()
+  const { prefs, updatePrefs, lang } = useMedia()
+  const [langOpen, setLangOpen] = useState(false)
+  const current = LANGUAGES.find((l) => l.code === lang) ?? LANGUAGES[0]!
   return (
     <div className="space-y-5">
       <PlaylistManager />
       <AdultFilter />
       <TmdbSettings />
-      <Section title="Görünüm">
-        <Row label="Kart boyutu" hint="Kanal ve poster ızgaralarının yoğunluğu.">
+      <Section title={t('Görünüm')}>
+        <Row label={t('Arayüz dili')} hint={t('Menüler, düğmeler ve mesajlar bu dilde görünür.')}>
+          <button type="button" onClick={() => setLangOpen(true)} className="btn-ghost inline-flex items-center gap-2" aria-haspopup="dialog">
+            <span className="flag text-lg" aria-hidden="true">
+              {flagOf(current.region)}
+            </span>
+            {current.name}
+          </button>
+        </Row>
+        <Row label={t('Kart boyutu')} hint={t('Kanal ve poster ızgaralarının yoğunluğu.')}>
           <Segmented<CardSize>
-            label="Kart boyutu"
+            label={t('Kart boyutu')}
             value={prefs.cardSize}
             onChange={(cardSize) => updatePrefs({ cardSize })}
             options={[
-              { value: 'sm', label: 'Küçük' },
-              { value: 'md', label: 'Orta' },
-              { value: 'lg', label: 'Büyük' },
+              { value: 'sm', label: t('Küçük') },
+              { value: 'md', label: t('Orta') },
+              { value: 'lg', label: t('Büyük') },
             ]}
           />
         </Row>
-        <Row label="Logoları ve posterleri göster" hint="Kapatırsan kartlarda yalnızca baş harfler görünür.">
-          <Toggle label="Logoları ve posterleri göster" checked={prefs.showLogos} onChange={(showLogos) => updatePrefs({ showLogos })} />
+        <Row label={t('Logoları ve posterleri göster')} hint={t('Kapatırsan kartlarda yalnızca baş harfler görünür.')}>
+          <Toggle label={t('Logoları ve posterleri göster')} checked={prefs.showLogos} onChange={(showLogos) => updatePrefs({ showLogos })} />
         </Row>
       </Section>
+      {langOpen && <LanguageSelectorModal onClose={() => setLangOpen(false)} />}
     </div>
   )
 }
@@ -158,39 +170,39 @@ function General() {
 function Playback() {
   const { prefs, updatePrefs } = useMedia()
   return (
-    <Section title="Oynatma">
-      <Row label="Otomatik oynat" hint="Bir kanala veya içeriğe tıklayınca yayın hemen başlasın.">
-        <Toggle label="Otomatik oynat" checked={prefs.autoplay} onChange={(autoplay) => updatePrefs({ autoplay })} />
+    <Section title={t('Oynatma')}>
+      <Row label={t('Otomatik oynat')} hint={t('Bir kanala veya içeriğe tıklayınca yayın hemen başlasın.')}>
+        <Toggle label={t('Otomatik oynat')} checked={prefs.autoplay} onChange={(autoplay) => updatePrefs({ autoplay })} />
       </Row>
-      <Row label="Görüntü oranı" hint="Film ekrana nasıl otursun. Orijinal oran, filmin kendi şeklini korur; Uzat görüntüyü bozar. Oynatıcıdaki düğmeden de değiştirebilirsin.">
+      <Row label={t('Görüntü oranı')} hint={t('Film ekrana nasıl otursun. Orijinal oran, filmin kendi şeklini korur; Uzat görüntüyü bozar. Oynatıcıdaki düğmeden de değiştirebilirsin.')}>
         <Segmented<AspectMode>
-          label="Görüntü oranı"
+          label={t('Görüntü oranı')}
           value={prefs.aspect}
           onChange={(aspect) => updatePrefs({ aspect })}
           options={[
-            { value: 'fit', label: 'Orijinal' },
-            { value: 'fill', label: 'Doldur' },
-            { value: 'stretch', label: 'Uzat' },
+            { value: 'fit', label: t('Orijinal') },
+            { value: 'fill', label: t('Doldur') },
+            { value: 'stretch', label: t('Uzat') },
             { value: '16:9', label: '16:9' },
             { value: '4:3', label: '4:3' },
           ]}
         />
       </Row>
-      <Row label="Tampon süresi" hint="Yavaş bağlantılarda daha uzun tampon kesintileri azaltır." soon>
+      <Row label={t('Tampon süresi')} hint={t('Yavaş bağlantılarda daha uzun tampon kesintileri azaltır.')} soon>
         <Segmented<10 | 30 | 60>
-          label="Tampon süresi"
+          label={t('Tampon süresi')}
           disabled
           value={prefs.bufferSeconds}
           onChange={(bufferSeconds) => updatePrefs({ bufferSeconds })}
           options={[
-            { value: 10, label: '10 sn' },
-            { value: 30, label: '30 sn' },
-            { value: 60, label: '60 sn' },
+            { value: 10, label: t('10 sn') },
+            { value: 30, label: t('30 sn') },
+            { value: 60, label: t('60 sn') },
           ]}
         />
       </Row>
-      <Row label="Donanım hızlandırma" hint="Windows masaüstü uygulamasında video çözmeyi ekran kartına bırakır." soon>
-        <Toggle label="Donanım hızlandırma" disabled checked={prefs.hardwareDecoding} onChange={(hardwareDecoding) => updatePrefs({ hardwareDecoding })} />
+      <Row label={t('Donanım hızlandırma')} hint={t('Windows masaüstü uygulamasında video çözmeyi ekran kartına bırakır.')} soon>
+        <Toggle label={t('Donanım hızlandırma')} disabled checked={prefs.hardwareDecoding} onChange={(hardwareDecoding) => updatePrefs({ hardwareDecoding })} />
       </Row>
     </Section>
   )
@@ -201,29 +213,31 @@ function Epg() {
   const shownUrl = epg.url.replace(/(password=)[^&]*/i, '$1***')
   const status =
     epg.status === 'loading'
-      ? `Rehber indiriliyor${epg.bytes > 0 ? ` · ${megabytes(epg.bytes)}` : '...'}`
+      ? t('Rehber indiriliyor{v0}', { v0: epg.bytes > 0 ? ` · ${megabytes(epg.bytes)}` : '...' })
       : epg.status === 'ready'
-        ? `${epg.channelCount.toLocaleString('tr-TR')} kanal için program var${epg.fetchedAt ? ` · son güncelleme ${dateTime(epg.fetchedAt)}` : ''}`
+        ? epg.fetchedAt
+          ? t('{v0} kanal için program var · son güncelleme {v1}', { v0: epg.channelCount, v1: dateTime(epg.fetchedAt) })
+          : t('{v0} kanal için program var', { v0: epg.channelCount })
         : epg.status === 'error'
-          ? (epg.error ?? 'Rehber alınamadı.')
+          ? (epg.error ?? t('Rehber alınamadı.'))
           : epg.url
-            ? 'Henüz indirilmedi.'
-            : 'Bu liste bir portal değil. Rehber için bir XMLTV adresi gir.'
+            ? t('Henüz indirilmedi.')
+            : t('Bu liste bir portal değil. Rehber için bir XMLTV adresi gir.')
 
   return (
     <div className="space-y-5">
-      <Section title="Program rehberi (EPG)" description="Canlı TV kartlarında ve oynatıcı penceresinde Şimdi ve Sonra programlarını gösterir.">
-        <Row label="Durum" hint={epg.status === 'ready' && epg.error ? epg.error : undefined}>
-          <p aria-live="polite" className={`max-w-xs text-right text-sm tabular-nums ${epg.status === 'error' ? 'text-danger' : 'text-[var(--ink-2)]'}`}>
+      <Section title={t('Program rehberi (EPG)')} description={t('Canlı TV kartlarında ve oynatıcı penceresinde Şimdi ve Sonra programlarını gösterir.')}>
+        <Row label={t('Durum')} hint={epg.status === 'ready' && epg.error ? epg.error : undefined}>
+          <p aria-live="polite" className={`max-w-xs text-end text-sm tabular-nums ${epg.status === 'error' ? 'text-danger' : 'text-[var(--ink-2)]'}`}>
             {status}
           </p>
         </Row>
-        <Row label="XMLTV adresi" hint="Boş bırakırsan portalın kendi adresi (xmltv.php) kullanılır. Genellikle .xml veya .xml.gz ile biten adres." htmlFor="epg-url">
+        <Row label={t('XMLTV adresi')} hint={t('Boş bırakırsan portalın kendi adresi (xmltv.php) kullanılır. Genellikle .xml veya .xml.gz ile biten adres.')} htmlFor="epg-url">
           <input
             id="epg-url"
             value={prefs.epgUrl}
             onChange={(e) => updatePrefs({ epgUrl: e.target.value })}
-            placeholder={shownUrl || 'http://sunucu.com/epg.xml'}
+            placeholder={shownUrl || t('http://sunucu.com/epg.xml')}
             inputMode="url"
             autoComplete="off"
             spellCheck={false}
@@ -231,8 +245,8 @@ function Epg() {
           />
         </Row>
         <Row
-          label="EPG görünme süresi"
-          hint="Canlı yayını tam ekranda izlerken, fareyi son oynattığından sonra kontroller ve programın ince bandı (adı, kalan süre, ilerleme çubuğu) kaç saniye ekranda kalsın."
+          label={t('EPG görünme süresi')}
+          hint={t('Canlı yayını tam ekranda izlerken, fareyi son oynattığından sonra kontroller ve programın ince bandı (adı, kalan süre, ilerleme çubuğu) kaç saniye ekranda kalsın.')}
           htmlFor="epg-seconds"
         >
           <div className="flex items-center gap-3">
@@ -247,38 +261,37 @@ function Epg() {
               aria-valuetext={`${prefs.epgSeconds} saniye`}
               className="h-1.5 w-40 cursor-pointer accent-accent sm:w-56"
             />
-            <span className="w-12 text-right text-sm tabular-nums text-[var(--ink-2)]">{prefs.epgSeconds} sn</span>
+            <span className="w-12 text-end text-sm tabular-nums text-[var(--ink-2)]">{prefs.epgSeconds}{' '}{t('sn')}</span>
           </div>
         </Row>
-        <Row label="Otomatik güncelleme" hint="Rehber ne sıklıkla yenilensin. Kapalıysa yalnızca elle güncellenir.">
+        <Row label={t('Otomatik güncelleme')} hint={t('Rehber ne sıklıkla yenilensin. Kapalıysa yalnızca elle güncellenir.')}>
           <Segmented<EpgRefresh>
-            label="Otomatik güncelleme"
+            label={t('Otomatik güncelleme')}
             value={prefs.epgRefresh}
             onChange={(epgRefresh) => updatePrefs({ epgRefresh })}
             options={[
-              { value: 'off', label: 'Kapalı' },
-              { value: '6', label: '6 sa' },
-              { value: '12', label: '12 sa' },
-              { value: '24', label: '24 sa' },
+              { value: 'off', label: t('Kapalı') },
+              { value: '6', label: t('6 sa') },
+              { value: '12', label: t('12 sa') },
+              { value: '24', label: t('24 sa') },
             ]}
           />
         </Row>
-        <Row label="Şimdi güncelle" hint="Büyük rehberler birkaç dakika sürebilir. İlerleme üstte görünür.">
+        <Row label={t('Şimdi güncelle')} hint={t('Büyük rehberler birkaç dakika sürebilir. İlerleme üstte görünür.')}>
           <button type="button" onClick={epg.refresh} disabled={!epg.url || epg.status === 'loading'} className="btn-primary">
-            <RefreshCw size={16} className={epg.status === 'loading' ? 'animate-spin' : ''} aria-hidden="true" /> Rehberi indir
-          </button>
+            <RefreshCw size={16} className={epg.status === 'loading' ? 'animate-spin' : ''} aria-hidden="true" />{' '}{t('Rehberi indir')}</button>
         </Row>
       </Section>
-      <p className="text-xs text-[var(--subtle)]">Kanalların rehberle eşleşmesi için listedeki tvg-id kullanılır; yoksa kanal adı eşleştirilir. Eski eklenen listelerde tvg-id yoksa listeyi güncelle.</p>
+      <p className="text-xs text-[var(--subtle)]">{t('Kanalların rehberle eşleşmesi için listedeki tvg-id kullanılır; yoksa kanal adı eşleştirilir. Eski eklenen listelerde tvg-id yoksa listeyi güncelle.')}</p>
     </div>
   )
 }
 
 function Categories() {
   const { allParts, hiddenFor, setHiddenFor, openManage, lists } = useMedia()
-  if (!lists.active) return <p className="rounded-2xl border border-dashed border-white/15 p-8 text-center text-sm text-[var(--subtle)]">Kategorileri yönetmek için önce bir liste ekle.</p>
+  if (!lists.active) return <p className="rounded-2xl border border-dashed border-white/15 p-8 text-center text-sm text-[var(--subtle)]">{t('Kategorileri yönetmek için önce bir liste ekle.')}</p>
   return (
-    <Section title="Kategori Yönetimi" description="Gizlediğin kategoriler listelerden ve ızgaralardan kalkar. Kanalların silinmez.">
+    <Section title={t('Kategori Yönetimi')} description={t('Gizlediğin kategoriler listelerden ve ızgaralardan kalkar. Kanalların silinmez.')}>
       {KINDS.map((kind) => {
         const total = categoriesOf(allParts[kind]).length
         const hiddenCount = categoriesOf(allParts[kind]).filter((c) => hiddenFor(kind).has(c.name)).length
@@ -287,18 +300,15 @@ function Categories() {
             <div>
               <p className="text-sm font-medium text-[var(--ink-2)]">{KIND_LABEL[kind]}</p>
               <p className="text-xs tabular-nums text-[var(--subtle)]">
-                {total === 0 ? 'Kategori yok' : `${total} kategori · ${hiddenCount} gizli`}
+                {total === 0 ? t('Kategori yok') : t('{total} kategori · {hiddenCount} gizli', { total, hiddenCount })}
               </p>
             </div>
             <div className="flex gap-2">
               {hiddenCount > 0 && (
-                <button type="button" onClick={() => setHiddenFor(kind, [])} className="btn-ghost !min-h-10">
-                  Hepsini göster
-                </button>
+                <button type="button" onClick={() => setHiddenFor(kind, [])} className="btn-ghost !min-h-10">{t('Hepsini göster')}</button>
               )}
               <button type="button" disabled={total === 0} onClick={() => openManage(kind)} className="btn-primary !min-h-10">
-                <SlidersHorizontal size={15} aria-hidden="true" /> Kategorileri yönet
-              </button>
+                <SlidersHorizontal size={15} aria-hidden="true" />{' '}{t('Kategorileri yönet')}</button>
             </div>
           </div>
         )
@@ -311,21 +321,21 @@ export function SettingsPage() {
   const { route } = useMedia()
   return (
     <div>
-      <h1 className="display text-3xl font-semibold">Ayarlar</h1>
-      <div role="tablist" aria-label="Ayar bölümleri" className="no-scrollbar -mx-4 mt-5 flex gap-1 overflow-x-auto border-b border-white/10 px-4 lg:mx-0 lg:px-0">
-        {TABS.map((t) => {
-          const on = route.tab === t.id
+      <h1 className="display text-3xl font-semibold">{t('Ayarlar')}</h1>
+      <div role="tablist" aria-label={t('Ayar bölümleri')} className="no-scrollbar -mx-4 mt-5 flex gap-1 overflow-x-auto border-b border-white/10 px-4 lg:mx-0 lg:px-0">
+        {TABS.map((tab) => {
+          const on = route.tab === tab.id
           return (
             <a
-              key={t.id}
-              href={hrefFor('settings', t.id)}
+              key={tab.id}
+              href={hrefFor('settings', tab.id)}
               role="tab"
               aria-selected={on}
               className={`-mb-px flex min-h-11 shrink-0 items-center border-b-2 px-4 text-sm font-medium transition ${
                 on ? 'border-accent text-accent' : 'border-transparent text-[var(--subtle)] hover:text-[var(--ink)]'
               }`}
             >
-              {t.label}
+              {t(tab.label)}
             </a>
           )
         })}

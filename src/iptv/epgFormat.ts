@@ -1,8 +1,9 @@
-export const clock = (ms: number): string => new Date(ms).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+import { locale } from './i18n'
+export const clock = (ms: number): string => new Date(ms).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })
 
-export const dateTime = (ms: number): string => new Date(ms).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+export const dateTime = (ms: number): string => new Date(ms).toLocaleString(locale(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
-export const megabytes = (bytes: number): string => `${(bytes / 1_048_576).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MB`
+export const megabytes = (bytes: number): string => `${(bytes / 1_048_576).toLocaleString(locale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MB`
 
 /** Minutes as short text: "45 dk", "1 sa", "1 sa 25 dk". */
 export const minutesText = (minutes: number): string => {

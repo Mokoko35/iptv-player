@@ -8,6 +8,7 @@ import { ProgressiveGrid } from './ProgressiveGrid'
 import { SkeletonRows } from './Skeletons'
 import type { Channel } from './types'
 import { useMedia } from './useMedia'
+import { t, locale } from './i18n'
 
 const KINDS: { kind: Kind; icon: typeof Tv }[] = [
   { kind: 'live', icon: Tv },
@@ -43,9 +44,9 @@ export function FavoritesPage() {
   return (
     <div className="lg:-mx-8 lg:-mb-16 lg:-mt-8 lg:flex lg:h-dvh">
       {/* Column 2: which type of favorites */}
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col self-start border-r border-white/10 bg-rail lg:flex" aria-label="Favori türleri">
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col self-start border-r border-white/10 bg-rail lg:flex" aria-label={t('Favori türleri')}>
         <div className="px-5 pb-2 pt-6">
-          <h2 className="label">Favoriler</h2>
+          <h2 className="label">{t('Favoriler')}</h2>
         </div>
         <ul className="space-y-0.5 px-2" role="tablist" aria-orientation="vertical">
           {tabs.map(({ k, Icon, count, on }) => (
@@ -55,12 +56,12 @@ export function FavoritesPage() {
                 role="tab"
                 aria-selected={on}
                 onClick={() => setPicked(k)}
-                className={`relative flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition ${on ? 'bg-accent/15 font-semibold text-accent' : 'text-[var(--subtle)] hover:bg-white/5 hover:text-[var(--ink)]'}`}
+                className={`relative flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-start text-sm transition ${on ? 'bg-accent/15 font-semibold text-accent' : 'text-[var(--subtle)] hover:bg-white/5 hover:text-[var(--ink)]'}`}
               >
                 {on && <span aria-hidden="true" className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-accent" />}
                 <Icon size={18} aria-hidden="true" />
                 <span className="flex-1">{KIND_LABEL[k]}</span>
-                <span className="text-xs tabular-nums opacity-60">{count.toLocaleString('tr-TR')}</span>
+                <span className="text-xs tabular-nums opacity-60">{count.toLocaleString(locale())}</span>
               </button>
             </li>
           ))}
@@ -68,15 +69,14 @@ export function FavoritesPage() {
       </aside>
 
       {/* Column 3: the favorites */}
-      <section aria-label="Favoriler" className="min-w-0 lg:flex lg:h-dvh lg:w-[22rem] lg:flex-none lg:flex-col lg:border-r lg:border-white/10 xl:w-[25rem]">
+      <section aria-label={t('Favoriler')} className="min-w-0 lg:flex lg:h-dvh lg:w-[22rem] lg:flex-none lg:flex-col lg:border-r lg:border-white/10 xl:w-[25rem]">
         <header className="shrink-0 pb-3 lg:px-4 lg:pt-5">
-          <h1 className="display text-lg font-semibold">
-            Favoriler <span className="text-[var(--subtle)]">›</span> <span className="text-accent">{KIND_LABEL[kind]}</span>
+          <h1 className="display text-lg font-semibold">{t('Favoriler')}{' '}<span className="text-[var(--subtle)]">›</span> <span className="text-accent">{KIND_LABEL[kind]}</span>
           </h1>
-          <p className="mt-0.5 text-sm tabular-nums text-[var(--subtle)]">{items.length.toLocaleString('tr-TR')} öğe</p>
+          <p className="mt-0.5 text-sm tabular-nums text-[var(--subtle)]">{items.length.toLocaleString(locale())}{' '}{t('öğe')}</p>
 
           {/* On a narrow window the types are chips instead of a column. */}
-          <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:hidden" role="tablist" aria-label="Favori türleri">
+          <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:hidden" role="tablist" aria-label={t('Favori türleri')}>
             {tabs.map(({ k, count, on }) => (
               <button
                 key={k}
@@ -94,9 +94,9 @@ export function FavoritesPage() {
           {total > 0 && (
             <div className="relative mt-3">
               <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--subtle)]" aria-hidden="true" />
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Favorilerde ara" aria-label="Favorilerde ara" className="field !pl-9 !pr-9" />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('Favorilerde ara')} aria-label={t('Favorilerde ara')} className="field !pl-9 !pr-9" />
               {query && (
-                <button type="button" onClick={() => setQuery('')} aria-label="Aramayı temizle" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-[var(--subtle)] hover:text-[var(--ink)]">
+                <button type="button" onClick={() => setQuery('')} aria-label={t('Aramayı temizle')} className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-[var(--subtle)] hover:text-[var(--ink)]">
                   <X size={15} />
                 </button>
               )}
@@ -108,11 +108,11 @@ export function FavoritesPage() {
           {lists.starting ? (
             <SkeletonRows />
           ) : lists.playlists.length === 0 ? (
-            <Empty icon="add">Önce bir liste ekle. Sonra kanalların, filmlerin ve dizilerin yanındaki kalple favori ekleyebilirsin.</Empty>
+            <Empty icon="add">{t('Önce bir liste ekle. Sonra kanalların, filmlerin ve dizilerin yanındaki kalple favori ekleyebilirsin.')}</Empty>
           ) : favs[kind].length === 0 ? (
-            <Empty icon="none">{total === 0 ? 'Henüz favorin yok. Kanal, film veya dizilerin yanındaki kalbe dokunarak favori ekleyebilirsin.' : `${KIND_LABEL[kind]} içinde favorin yok.`}</Empty>
+            <Empty icon="none">{total === 0 ? t('Henüz favorin yok. Kanal, film veya dizilerin yanındaki kalbe dokunarak favori ekleyebilirsin.') : t('{v0} içinde favorin yok.', { v0: KIND_LABEL[kind] })}</Empty>
           ) : items.length === 0 ? (
-            <Empty icon="none">Eşleşen favori yok.</Empty>
+            <Empty icon="none">{t('Eşleşen favori yok.')}</Empty>
           ) : (
             <ProgressiveGrid
               key={`${kind}|${deferred}`}

@@ -1,6 +1,7 @@
 import { LoadError } from './load'
 import type { Channel, XtreamLogin } from './types'
 import { normalizeServer } from './xtream'
+import { t } from './i18n'
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -158,12 +159,12 @@ export class XmltvScanner {
 
 export function epgErrorText(error: unknown): string {
   if (error instanceof LoadError) {
-    if (error.code === 'blocked') return 'Program rehberi indirilemedi. Tarayıcı bu sunucuya erişemiyor (CORS). Windows masaüstü uygulamasında çalışır.'
-    if (error.code === 'http') return `Program rehberi sunucusu hata döndürdü (${error.status ?? '?'}). Adresi ve giriş bilgilerini kontrol et.`
-    if (error.code === 'timeout') return 'Program rehberi zamanında gelmedi. Biraz sonra tekrar dene.'
-    if (error.code === 'empty') return 'Rehberde şu an için program bulunamadı.'
+    if (error.code === 'blocked') return t('Program rehberi indirilemedi. Tarayıcı bu sunucuya erişemiyor (CORS). Windows masaüstü uygulamasında çalışır.')
+    if (error.code === 'http') return t('Program rehberi sunucusu hata döndürdü ({v0}). Adresi ve giriş bilgilerini kontrol et.', { v0: error.status ?? '?' })
+    if (error.code === 'timeout') return t('Program rehberi zamanında gelmedi. Biraz sonra tekrar dene.')
+    if (error.code === 'empty') return t('Rehberde şu an için program bulunamadı.')
   }
-  return 'Program rehberi okunamadı.'
+  return t('Program rehberi okunamadı.')
 }
 
 /** Downloads and reads a guide. Handles .xml and .xml.gz. Gives up after 45 seconds without data. */

@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Loader2, Lock, X } from 'lucide-react'
 import { isValidPin, setPin as savePin, verifyPin } from './pin'
+import { t } from './i18n'
 
 interface Props {
   mode: 'create' | 'verify'
@@ -33,23 +34,23 @@ export function PinDialog({ mode, title, description, onSuccess, onCancel }: Pro
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     setError(null)
-    if (!isValidPin(pin)) return setError('PIN 4 haneli bir sayı olmalı.')
+    if (!isValidPin(pin)) return setError(t('PIN 4 haneli bir sayı olmalı.'))
 
     if (mode === 'create') {
-      if (pin !== confirm) return setError('İki PIN aynı değil.')
+      if (pin !== confirm) return setError(t('İki PIN aynı değil.'))
       setBusy(true)
       try {
         await savePin(pin)
         onSuccess()
       } catch {
-        setError('PIN kaydedilemedi. Tarayıcı depolaması kapalı olabilir.')
+        setError(t('PIN kaydedilemedi. Tarayıcı depolaması kapalı olabilir.'))
         setBusy(false)
       }
       return
     }
 
     const wait = Math.ceil((lockedUntil - Date.now()) / 1000)
-    if (wait > 0) return setError(`Çok fazla yanlış deneme. ${wait} saniye bekle.`)
+    if (wait > 0) return setError(t('Çok fazla yanlış deneme. {wait} saniye bekle.', { wait }))
     setBusy(true)
     const ok = await verifyPin(pin)
     if (ok) {
@@ -61,9 +62,9 @@ export function PinDialog({ mode, title, description, onSuccess, onCancel }: Pro
     if (misses >= 5) {
       misses = 0
       lockedUntil = Date.now() + 30_000
-      setError('Çok fazla yanlış deneme. 30 saniye bekle.')
+      setError(t('Çok fazla yanlış deneme. 30 saniye bekle.'))
     } else {
-      setError('PIN yanlış.')
+      setError(t('PIN yanlış.'))
     }
     setPin('')
     setBusy(false)
@@ -85,7 +86,7 @@ export function PinDialog({ mode, title, description, onSuccess, onCancel }: Pro
           <div className="grid h-11 w-11 place-items-center rounded-2xl bg-accent/15 text-accent">
             <Lock size={20} aria-hidden="true" />
           </div>
-          <button type="button" onClick={onCancel} aria-label="Kapat" className="grid h-10 w-10 place-items-center rounded-full text-[var(--subtle)] hover:bg-white/10 hover:text-[var(--ink)]">
+          <button type="button" onClick={onCancel} aria-label={t('Kapat')} className="grid h-10 w-10 place-items-center rounded-full text-[var(--subtle)] hover:bg-white/10 hover:text-[var(--ink)]">
             <X size={18} />
           </button>
         </div>
@@ -97,7 +98,7 @@ export function PinDialog({ mode, title, description, onSuccess, onCancel }: Pro
         <div className="mt-5 space-y-3">
           <div>
             <label htmlFor="pin-input" className="label mb-1.5 block">
-              {mode === 'create' ? 'Yeni PIN' : 'PIN'}
+              {mode === 'create' ? t('Yeni PIN') : t('PIN')}
             </label>
             <input
               id="pin-input"
@@ -115,9 +116,7 @@ export function PinDialog({ mode, title, description, onSuccess, onCancel }: Pro
           </div>
           {mode === 'create' && (
             <div>
-              <label htmlFor="pin-confirm" className="label mb-1.5 block">
-                PIN'i tekrar gir
-              </label>
+              <label htmlFor="pin-confirm" className="label mb-1.5 block">{t('PIN\'i tekrar gir')}</label>
               <input id="pin-confirm" type="password" inputMode="numeric" autoComplete="off" maxLength={4} value={confirm} onChange={(e) => setConfirm(digits(e.target.value))} className={field} placeholder="••••" />
             </div>
           )}
@@ -131,7 +130,7 @@ export function PinDialog({ mode, title, description, onSuccess, onCancel }: Pro
 
         <button type="submit" disabled={busy} className="btn-primary mt-5 w-full">
           {busy && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
-          {mode === 'create' ? 'PIN\'i kaydet' : 'Onayla'}
+          {mode === 'create' ? t('PIN\'i kaydet') : t('Onayla')}
         </button>
       </form>
     </div>

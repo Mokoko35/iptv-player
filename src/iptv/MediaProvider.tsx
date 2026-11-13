@@ -15,6 +15,7 @@ import { applyTheme } from './themes'
 import { loginFromPlaylistUrl, loginFromStreamUrl, vodIdOf } from './xtreamApi'
 import type { XtreamLogin } from './types'
 import { type WatchEntry, type WatchStore, loadWatch, saveWatch, watchKey } from './watch'
+import { getLang, setLang, type Lang } from './i18n'
 
 const NONE = new Set<string>()
 const NO_ORDER: string[] = []
@@ -289,7 +290,15 @@ export function MediaProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const [lang, setLangState] = useState<Lang>(getLang)
+  const setLanguage = useCallback((next: Lang) => {
+    setLang(next)
+    setLangState(next)
+  }, [])
+
   const value: Media = {
+    lang,
+    setLanguage,
     lists,
     parts,
     visible,

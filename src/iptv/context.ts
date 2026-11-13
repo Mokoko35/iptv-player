@@ -10,6 +10,7 @@ import type { Epg } from './useEpg'
 import type { XtreamLogin } from './types'
 import type { CountryCount } from './countries'
 import type { WatchEntry } from './watch'
+import type { Lang } from './i18n'
 
 export interface ChannelNav {
   /** 1-based position of the playing channel in the list it was picked from. */
@@ -101,6 +102,9 @@ export interface Media {
   prefs: Prefs
   updatePrefs: (patch: Partial<Prefs>) => void
   route: ReturnType<typeof useRoute>
+  /** Interface language. Changing it re-renders everything that reads the context, so t() picks up the new language. */
+  lang: Lang
+  setLanguage: (lang: Lang) => void
   adding: boolean
   openAdd: () => void
   closeAdd: () => void

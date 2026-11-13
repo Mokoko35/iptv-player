@@ -8,6 +8,7 @@ import type { Channel, XtreamLogin } from './types'
 import { useMedia } from './useMedia'
 import { findTmdb, mergeDetails } from './tmdb'
 import { type Details, type Episode, type SeriesDetails, episodeChannel, getSeriesInfo, getVodInfo, vodIdOf } from './xtreamApi'
+import { t } from './i18n'
 
 type Status = 'loading' | 'ready' | 'error'
 
@@ -74,16 +75,15 @@ function Header({ channel, details, status, fallbackText, actions, extraChips = 
             {plot ??
               (status === 'loading' ? (
                 <span className="inline-flex items-center gap-2 text-[var(--subtle)]">
-                  <Loader2 size={14} className="animate-spin" aria-hidden="true" /> Ayrıntılar yükleniyor...
-                </span>
+                  <Loader2 size={14} className="animate-spin" aria-hidden="true" />{' '}{t('Ayrıntılar yükleniyor...')}</span>
               ) : (
                 <span className="text-[var(--subtle)]">{fallbackText}</span>
               ))}
           </p>
 
           <dl className="mt-4 max-w-2xl space-y-1.5">
-            <Fact label="Oyuncular" value={details?.cast} />
-            <Fact label="Yönetmen" value={details?.director} />
+            <Fact label={t('Oyuncular')} value={details?.cast} />
+            <Fact label={t('Yönetmen')} value={details?.director} />
           </dl>
 
           <div className="mt-6 flex flex-wrap gap-3">{actions}</div>
@@ -99,7 +99,7 @@ function FavoriteAction({ channel }: { channel: Channel }) {
   return (
     <button type="button" onClick={() => toggleFavorite(channel)} aria-pressed={fav} className={`btn-ghost ${fav ? '!border-accent !text-accent' : ''}`}>
       <Heart size={16} fill={fav ? 'currentColor' : 'none'} aria-hidden="true" />
-      {fav ? 'Favorilerde' : 'Favorilere ekle'}
+      {fav ? t('Favorilerde') : t('Favorilere ekle')}
     </button>
   )
 }
@@ -108,7 +108,7 @@ function TrailerAction({ url }: { url?: string }) {
   if (!url) return null
   return (
     <a href={url} target="_blank" rel="noopener noreferrer" className="btn-ghost">
-      <Clapperboard size={16} aria-hidden="true" /> Fragman <ExternalLink size={12} aria-hidden="true" />
+      <Clapperboard size={16} aria-hidden="true" />{' '}{t('Fragman')}{' '}<ExternalLink size={12} aria-hidden="true" />
     </a>
   )
 }
@@ -149,7 +149,7 @@ function MovieDetail({ channel, login, playlistId }: { channel: Channel; login: 
           let failure: unknown
           const base = portal ? await getVodInfo(portal.login, portal.playlistId, portal.vodId).catch((e: unknown) => ((failure = e), undefined)) : undefined
           const extra = tmdbKey ? await findTmdb(tmdbKey, 'movie', channel.name, base?.tmdbId).catch(() => null) : null
-          if (!base && !extra) throw failure instanceof Error ? failure : new Error('Bu film için ayrıntı bulunamadı.')
+          if (!base && !extra) throw failure instanceof Error ? failure : new Error(t('Bu film için ayrıntı bulunamadı.'))
           return mergeDetails(base, extra)
         }
       : null,
@@ -176,12 +176,11 @@ function MovieDetail({ channel, login, playlistId }: { channel: Channel; login: 
       channel={channel}
       details={details}
       status={status}
-      fallbackText={error ?? 'Bu film için özet bulunamadı.'}
+      fallbackText={error ?? t('Bu film için özet bulunamadı.')}
       actions={
         <>
           <button type="button" onClick={start} className="btn-primary" autoFocus>
-            <Play size={16} fill="currentColor" aria-hidden="true" /> Oynat
-          </button>
+            <Play size={16} fill="currentColor" aria-hidden="true" />{' '}{t('Oynat')}</button>
           <FavoriteAction channel={channel} />
           <DownloadButton channel={channel} />
           <TrailerAction url={details?.trailer} />
@@ -216,8 +215,8 @@ function EpisodeRow({ ep, download, poster, playing, watched, progress, onPlay, 
       <button
         type="button"
         onClick={onPlay}
-        aria-label={`Sezon ${ep.season} bölüm ${ep.number}: ${ep.title} oynat`}
-        className={`group flex min-w-0 flex-1 items-center gap-4 rounded-xl p-1 text-left transition hover:bg-white/5 ${watched ? 'opacity-50' : ''}`}
+        aria-label={t('Sezon {season} bölüm {number}: {title} oynat', { season: ep.season, number: ep.number, title: ep.title })}
+        className={`group flex min-w-0 flex-1 items-center gap-4 rounded-xl p-1 text-start transition hover:bg-white/5 ${watched ? 'opacity-50' : ''}`}
       >
         <span className="relative hidden h-16 w-28 shrink-0 sm:block">
           <PosterArt key={ep.image ?? poster ?? ep.id} name={`${ep.number}`} src={ep.image ?? poster} className="h-full w-full rounded-xl" />
@@ -229,8 +228,8 @@ function EpisodeRow({ ep, download, poster, playing, watched, progress, onPlay, 
           <span className="flex flex-wrap items-center gap-2">
             <span className="display text-lg font-semibold tabular-nums text-accent">{ep.number}</span>
             <span className="truncate text-sm font-medium text-[var(--ink-2)]">{ep.title}</span>
-            {watched && <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-white/70">İZLENDİ</span>}
-            {playing && <span className="rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-[var(--accent-ink)]">İZLENİYOR</span>}
+            {watched && <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-white/70">{t('İZLENDİ')}</span>}
+            {playing && <span className="rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-[var(--accent-ink)]">{t('İZLENİYOR')}</span>}
           </span>
           {ep.plot && <span className="mt-1 line-clamp-2 block text-pretty text-xs text-[var(--subtle)]">{ep.plot}</span>}
           {!watched && percent > 0.5 && (
@@ -238,8 +237,7 @@ function EpisodeRow({ ep, download, poster, playing, watched, progress, onPlay, 
               <span className="h-1 w-24 overflow-hidden rounded-full bg-white/15" aria-hidden="true">
                 <span className="block h-full rounded-full bg-accent" style={{ width: `${percent}%` }} />
               </span>
-              %{Math.round(percent)} izlendi
-            </span>
+              %{Math.round(percent)}{' '}{t('izlendi')}</span>
           )}
         </span>
         <span className="flex shrink-0 flex-col items-end gap-1 text-xs tabular-nums text-[var(--subtle)]">
@@ -254,16 +252,16 @@ function EpisodeRow({ ep, download, poster, playing, watched, progress, onPlay, 
       <DownloadButton channel={download} compact className="self-center" />
       <label
         className="flex shrink-0 cursor-pointer flex-col items-center justify-center gap-1 self-stretch rounded-xl px-2 text-[11px] text-[var(--subtle)] transition hover:bg-white/5 hover:text-[var(--ink-2)]"
-        title={watched ? 'İzledim işaretini kaldır' : 'İzledim olarak işaretle'}
+        title={watched ? t('İzledim işaretini kaldır') : t('İzledim olarak işaretle')}
       >
         <input
           type="checkbox"
           checked={watched}
           onChange={onToggleWatched}
-          aria-label={`Sezon ${ep.season} bölüm ${ep.number} izlendi`}
+          aria-label={t('Sezon {season} bölüm {number} izlendi', { season: ep.season, number: ep.number })}
           className="h-4 w-4 cursor-pointer accent-accent"
         />
-        <span>İzledim</span>
+        <span>{t('İzledim')}</span>
       </label>
     </li>
   )
@@ -307,7 +305,7 @@ function SeriesDetailView({ channel, login, playlistId, seriesId }: { channel: C
   }
 
   const first = episodes[0]
-  const chips = data ? [`${data.seasons.length} sezon`, `${total} bölüm`] : []
+  const chips = data ? [`${data.seasons.length} sezon`, t('{total} bölüm', { total })] : []
 
   return (
     <>
@@ -316,11 +314,11 @@ function SeriesDetailView({ channel, login, playlistId, seriesId }: { channel: C
         details={data}
         status={status}
         extraChips={chips}
-        fallbackText={error ?? 'Bu dizi için özet bulunamadı.'}
+        fallbackText={error ?? t('Bu dizi için özet bulunamadı.')}
         actions={
           <>
             <button type="button" onClick={() => first && playEpisode(first)} disabled={!first} className="btn-primary" autoFocus>
-              <Play size={16} fill="currentColor" aria-hidden="true" /> {first ? `Sezon ${first.season} Bölüm ${first.number} oynat` : 'Oynat'}
+              <Play size={16} fill="currentColor" aria-hidden="true" /> {first ? t('Sezon {season} Bölüm {number} oynat', { season: first.season, number: first.number }) : t('Oynat')}
             </button>
             <FavoriteAction channel={channel} />
             <TrailerAction url={data?.trailer} />
@@ -329,12 +327,12 @@ function SeriesDetailView({ channel, login, playlistId, seriesId }: { channel: C
       />
 
       <div className="px-5 pb-6 sm:px-8 sm:pb-8">
-        {status === 'loading' && <p className="py-6 text-center text-sm text-[var(--subtle)]">Bölümler yükleniyor...</p>}
-        {status === 'error' && <p className="rounded-2xl border border-dashed border-white/15 p-6 text-center text-sm text-[var(--subtle)]">Bölüm listesi alınamadı. {error}</p>}
-        {data && data.seasons.length === 0 && <p className="py-6 text-center text-sm text-[var(--subtle)]">Bu dizi için bölüm bulunamadı.</p>}
+        {status === 'loading' && <p className="py-6 text-center text-sm text-[var(--subtle)]">{t('Bölümler yükleniyor...')}</p>}
+        {status === 'error' && <p className="rounded-2xl border border-dashed border-white/15 p-6 text-center text-sm text-[var(--subtle)]">{t('Bölüm listesi alınamadı.')}{' '}{error}</p>}
+        {data && data.seasons.length === 0 && <p className="py-6 text-center text-sm text-[var(--subtle)]">{t('Bu dizi için bölüm bulunamadı.')}</p>}
         {data && data.seasons.length > 0 && (
           <>
-            <div role="tablist" aria-label="Sezonlar" className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-3">
+            <div role="tablist" aria-label={t('Sezonlar')} className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-3">
               {data.seasons.map((s) => (
                 <button
                   key={s.number}
@@ -350,7 +348,7 @@ function SeriesDetailView({ channel, login, playlistId, seriesId }: { channel: C
                 </button>
               ))}
             </div>
-            <ul className="space-y-2" aria-label="Bölümler">
+            <ul className="space-y-2" aria-label={t('Bölümler')}>
               {episodes.map((ep) => {
                 const entry = watchOf(ep.url)
                 return (
@@ -400,7 +398,7 @@ function Sheet({ channel }: { channel: Channel }) {
         aria-labelledby="detail-title"
         className="relative max-h-[94dvh] w-full max-w-5xl overflow-y-auto rounded-t-3xl border border-white/15 bg-elev shadow-2xl sm:rounded-3xl"
       >
-        <button type="button" onClick={closeDetail} aria-label="Kapat" className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/60 text-white/80 hover:text-white">
+        <button type="button" onClick={closeDetail} aria-label={t('Kapat')} className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/60 text-white/80 hover:text-white">
           <X size={18} />
         </button>
         {channel.seriesId ? (

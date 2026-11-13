@@ -1,4 +1,6 @@
 import { type Details, cached } from './xtreamApi'
+import { t } from './i18n'
+import { tmdbLanguage } from './i18n'
 
 /**
  * TheMovieDB lookup by title. List makers write titles like "Hillel | 2026 | TR-ENG" or "Heat (1995) [TR]",
@@ -74,7 +76,7 @@ async function call(key: string, path: string, params: Record<string, string>): 
   if (key.startsWith('eyJ')) headers.Authorization = `Bearer ${key}`
   else url.searchParams.set('api_key', key)
   const res = await fetch(url, { headers, signal: AbortSignal.timeout(15_000) })
-  if (res.status === 401) throw new Error('TMDB anahtarı geçersiz.')
+  if (res.status === 401) throw new Error(t('TMDB anahtarı geçersiz.'))
   if (!res.ok) throw new Error(`TMDB ${res.status}`)
   return rec(await res.json()) ?? {}
 }
@@ -95,7 +97,7 @@ const yearOfDate = (v: unknown): string | undefined => text(v)?.slice(0, 4)
 
 async function search(key: string, kind: TmdbKind, title: string, year?: string): Promise<string | null> {
   const run = async (withYear: boolean) => {
-    const params: Record<string, string> = { query: title, language: 'tr-TR', include_adult: 'false' }
+    const params: Record<string, string> = { query: title, language: tmdbLanguage(), include_adult: 'false' }
     if (withYear && year) params[kind === 'movie' ? 'year' : 'first_air_date_year'] = year
     return list((await call(key, `/search/${kind}`, params)).results).map(rec).filter((r): r is Rec => r !== null)
   }
@@ -141,11 +143,11 @@ function toDetails(kind: TmdbKind, d: Rec): Details {
  */
 export function findTmdb(key: string, kind: TmdbKind, rawTitle: string, tmdbId?: string): Promise<Details | null> {
   const { title, year } = parseTitle(rawTitle)
-  const cacheKey = `tmdb:${kind}:${tmdbId ?? `${title.toLowerCase()}|${year ?? ''}`}`
+  const cacheKey = `tmdb:${tmdbLanguage()}:${kind}:${tmdbId ?? `${title.toLowerCase()}|${year ?? ''}`}`
   return cached(cacheKey, 14 * DAY, async () => {
     const id = tmdbId ?? (await search(key, kind, title, year))
     if (!id) return null
-    const detail = { append_to_response: 'credits,videos', language: 'tr-TR' }
+    const detail = { append_to_response: 'credits,videos', language: tmdbLanguage() }
     const d = await call(key, `/${kind}/${id}`, detail)
     const out = toDetails(kind, d)
     // No Turkish summary: take the English one rather than none.

@@ -1,6 +1,7 @@
 import { kindOfUrl } from './kinds'
 import { looksLikeM3U, parseM3U } from './m3u'
 import type { Channel } from './types'
+import { t } from './i18n'
 
 export type LoadErrorCode = 'blocked' | 'http' | 'timeout' | 'notM3u' | 'empty'
 
@@ -18,18 +19,18 @@ export function loadErrorText(error: unknown): string {
   if (error instanceof LoadError) {
     switch (error.code) {
       case 'blocked':
-        return 'Tarayıcı bu adrese erişemedi. Sunucu çoğu zaman tarayıcılara izin vermez (CORS) veya adres http:// ile başlıyor. Windows masaüstü uygulamasında bu sorun olmaz; tarayıcıda ise listeyi indirip "Dosya" sekmesinden yükleyebilirsin.'
+        return t('Tarayıcı bu adrese erişemedi. Sunucu çoğu zaman tarayıcılara izin vermez (CORS) veya adres http:// ile başlıyor. Windows masaüstü uygulamasında bu sorun olmaz; tarayıcıda ise listeyi indirip "Dosya" sekmesinden yükleyebilirsin.')
       case 'http':
-        return `Sunucu hata döndürdü (${error.status ?? '?'}). Adresi, kullanıcı adını ve şifreyi kontrol et.`
+        return t('Sunucu hata döndürdü ({v0}). Adresi, kullanıcı adını ve şifreyi kontrol et.', { v0: error.status ?? '?' })
       case 'timeout':
-        return 'Sunucu zamanında yanıt vermedi. Biraz sonra tekrar dene.'
+        return t('Sunucu zamanında yanıt vermedi. Biraz sonra tekrar dene.')
       case 'notM3u':
-        return 'Yanıt bir M3U listesi gibi görünmüyor. Adres veya giriş bilgileri yanlış olabilir.'
+        return t('Yanıt bir M3U listesi gibi görünmüyor. Adres veya giriş bilgileri yanlış olabilir.')
       case 'empty':
-        return 'Listede oynatılabilir kanal bulunamadı.'
+        return t('Listede oynatılabilir kanal bulunamadı.')
     }
   }
-  return 'Liste yüklenemedi.'
+  return t('Liste yüklenemedi.')
 }
 
 export function channelsFromText(text: string): Channel[] {

@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { t } from './i18n'
 
 /**
  * The bridge to the C# (WPF) app that hosts this page in a WebView2 control.
@@ -141,7 +142,7 @@ function readTracks(v: unknown): HostTrack[] {
     if (id === undefined) continue
     out.push({
       id,
-      label: typeof item.label === 'string' && item.label ? item.label : `İz ${out.length + 1}`,
+      label: typeof item.label === 'string' && item.label ? item.label : t('İz {v0}', { v0: out.length + 1 }),
       lang: typeof item.lang === 'string' ? item.lang : undefined,
       selected: item.selected === true,
     })
@@ -181,7 +182,7 @@ export function reduceHost(state: HostState, data: unknown): HostState {
     case 'ended':
       return { ...state, ended: true, paused: true }
     case 'error':
-      return { ...state, error: typeof msg.message === 'string' && msg.message ? msg.message : 'Oynatılamadı.', buffering: false }
+      return { ...state, error: typeof msg.message === 'string' && msg.message ? msg.message : t('Oynatılamadı.'), buffering: false }
     case 'fullscreen':
       return { ...state, fullscreen: bool(msg.on) ?? state.fullscreen }
     case 'activity':

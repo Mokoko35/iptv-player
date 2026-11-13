@@ -4,6 +4,7 @@ import { clock } from './epgFormat'
 import { groupOf } from './kinds'
 import type { Channel } from './types'
 import type { NowNext } from './xmltv'
+import { t } from './i18n'
 
 interface ItemProps {
   channel: Channel
@@ -20,7 +21,7 @@ function Heart_({ favorite, name, onClick }: { favorite: boolean; name: string; 
       type="button"
       onClick={onClick}
       aria-pressed={favorite}
-      aria-label={favorite ? `${name} favorilerden çıkar` : `${name} favorilere ekle`}
+      aria-label={favorite ? t('{name} favorilerden çıkar', { name }) : t('{name} favorilere ekle', { name })}
       className={`absolute right-1 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full transition hover:bg-white/10 ${favorite ? 'text-accent' : 'text-[var(--subtle)] hover:text-[var(--ink)]'}`}
     >
       <Heart size={16} fill={favorite ? 'currentColor' : 'none'} />
@@ -36,8 +37,8 @@ export function ChannelListItem({ channel, active, favorite, showLogo, onPlay, o
         type="button"
         onClick={() => onPlay(channel)}
         aria-current={active || undefined}
-        aria-label={`${channel.name} kanalını oynat`}
-        className={`flex w-full items-center gap-3 rounded-xl border px-2.5 py-2 pr-12 text-left transition ${active ? 'border-accent bg-accent/10' : 'border-transparent hover:bg-white/5'}`}
+        aria-label={t('{name} kanalını oynat', { name: channel.name })}
+        className={`flex w-full items-center gap-3 rounded-xl border px-2.5 py-2 pr-12 text-start transition ${active ? 'border-accent bg-accent/10' : 'border-transparent hover:bg-white/5'}`}
       >
         <span className="relative block h-12 w-12 shrink-0 overflow-hidden rounded-lg">
           <Artwork channel={channel} showLogo={showLogo} fit="contain" />
@@ -71,8 +72,8 @@ export function TitleListItem({ channel, active, favorite, showLogo, onPlay, onF
         type="button"
         onClick={() => onPlay(channel)}
         aria-current={active || undefined}
-        aria-label={`${channel.name} ayrıntılarını aç`}
-        className={`flex w-full items-center gap-3 rounded-xl border px-2.5 py-2 pr-12 text-left transition ${active ? 'border-accent bg-accent/10' : 'border-transparent hover:bg-white/5'}`}
+        aria-label={t('{name} ayrıntılarını aç', { name: channel.name })}
+        className={`flex w-full items-center gap-3 rounded-xl border px-2.5 py-2 pr-12 text-start transition ${active ? 'border-accent bg-accent/10' : 'border-transparent hover:bg-white/5'}`}
       >
         <span className="relative block h-[4.5rem] w-12 shrink-0 overflow-hidden rounded-lg">
           <Artwork channel={channel} showLogo={showLogo} fit="cover" />
@@ -80,7 +81,7 @@ export function TitleListItem({ channel, active, favorite, showLogo, onPlay, onF
         <span className="min-w-0 flex-1">
           <span className={`block truncate text-sm font-medium ${active ? 'text-accent' : 'text-[var(--ink)]'}`}>{channel.name}</span>
           <span className="mt-0.5 block truncate text-xs text-[var(--subtle)]">
-            {channel.rating !== undefined && <span className="mr-2 font-semibold text-accent">★ {channel.rating.toFixed(1)}</span>}
+            {channel.rating !== undefined && <span className="me-2 font-semibold text-accent">★ {channel.rating.toFixed(1)}</span>}
             {groupOf(channel)}
           </span>
         </span>

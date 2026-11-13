@@ -9,6 +9,7 @@ import { useMedia } from './useMedia'
 import { LanguageSelectorModal } from './LanguageSelectorModal'
 import { useState } from 'react'
 import { Globe } from 'lucide-react'
+import { t } from './i18n'
 
 function Row({ title, items, href }: { title: string; items: Channel[]; href?: Page }) {
   const { current, openItem, isFavorite, toggleFavorite, prefs, epg } = useMedia()
@@ -18,8 +19,7 @@ function Row({ title, items, href }: { title: string; items: Channel[]; href?: P
       <div className="flex items-center justify-between">
         <h2 className="display text-xl font-semibold">{title}</h2>
         {href && (
-          <a href={hrefFor(href)} className="inline-flex min-h-10 items-center gap-1 text-sm text-[var(--subtle)] hover:text-accent">
-            Tümünü gör <ChevronRight size={15} aria-hidden="true" />
+          <a href={hrefFor(href)} className="inline-flex min-h-10 items-center gap-1 text-sm text-[var(--subtle)] hover:text-accent">{t('Tümünü gör')}{' '}<ChevronRight size={15} aria-hidden="true" />
           </a>
         )}
       </div>
@@ -42,20 +42,19 @@ function Hero({ channel }: { channel: Channel }) {
   const { openItem, route } = useMedia()
   const live = kindOf(channel) === 'live'
   return (
-    <section aria-label="Öne çıkan" className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-accent/25 via-elev to-canvas p-6 sm:p-10">
+    <section aria-label={t('Öne çıkan')} className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-accent/25 via-elev to-canvas p-6 sm:p-10">
       {channel.logo && <img src={channel.logo} alt="" aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-80 w-80 object-contain opacity-15 blur-sm" />}
       <div aria-hidden="true" className="pointer-events-none absolute -left-20 bottom-[-120px] h-64 w-96 rounded-full bg-accent/20 blur-3xl" />
       <div className="relative max-w-xl">
-        <span className="rounded-md bg-accent px-2 py-0.5 text-[10px] font-bold tracking-wider text-[var(--accent-ink)]">ÖNE ÇIKAN</span>
+        <span className="rounded-md bg-accent px-2 py-0.5 text-[10px] font-bold tracking-wider text-[var(--accent-ink)]">{t('ÖNE ÇIKAN')}</span>
         <h1 className="display mt-4 text-balance text-3xl font-semibold sm:text-5xl">{channel.name}</h1>
         <p className="mt-2 text-sm text-[var(--subtle)]">{groupOf(channel)}</p>
         <div className="mt-6 flex flex-wrap gap-3">
           <button type="button" onClick={() => openItem(channel)} className="btn-primary">
-            <Play size={16} fill="currentColor" aria-hidden="true" /> {live ? 'Oynat' : 'Ayrıntılar'}
+            <Play size={16} fill="currentColor" aria-hidden="true" /> {live ? t('Oynat') : t('Ayrıntılar')}
           </button>
           <button type="button" onClick={() => route.go('live')} className="btn-ghost">
-            <Tv size={16} aria-hidden="true" /> Canlı TV
-          </button>
+            <Tv size={16} aria-hidden="true" />{' '}{t('Canlı TV')}</button>
         </div>
       </div>
     </section>
@@ -84,29 +83,24 @@ export function HomePage(): ReactNode {
           onClick={() => setShowLang(true)}
           className="absolute right-4 top-4 flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white transition"
         >
-          <Globe size={18} />
-          Dil Değiştir
-        </button>
+          <Globe size={18} />{t('Dil Değiştir')}</button>
 
         <section className="card mx-auto w-full max-w-xl p-8 text-center sm:p-12 bg-gradient-to-br from-[#1a1d24] to-[#0f1115] border border-white/5 shadow-2xl">
           <div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-accent/10">
             <Tv size={36} className="text-accent" aria-hidden="true" />
           </div>
-          <h1 className="display mt-6 text-4xl font-bold text-white">İlk listeni ekle</h1>
-          <p className="mx-auto mt-4 max-w-md text-pretty text-base leading-relaxed text-white/50">
-            M3U adresi, portal (Xtream) girişi, dosya veya yapıştırılmış içerikle liste ekleyebilirsin. Uygulama içerik sağlamaz; yalnızca senin eklediğin listeleri oynatır.
-          </p>
+          <h1 className="display mt-6 text-4xl font-bold text-white">{t('İlk listeni ekle')}</h1>
+          <p className="mx-auto mt-4 max-w-md text-pretty text-base leading-relaxed text-white/50">{t('M3U adresi, portal (Xtream) girişi, dosya veya yapıştırılmış içerikle liste ekleyebilirsin. Uygulama içerik sağlamaz; yalnızca senin eklediğin listeleri oynatır.')}</p>
           <div className="mt-8 flex flex-col items-center gap-3">
             <button type="button" onClick={openAdd} className="btn-primary !px-8 !py-3 text-base shadow-lg shadow-accent/20">
-              <ListPlus size={20} aria-hidden="true" /> Liste ekle
-            </button>
+              <ListPlus size={20} aria-hidden="true" />{' '}{t('Liste ekle')}</button>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowFreeLists(!showFreeLists)}
                 className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-6 py-2.5 text-sm text-white/70 hover:bg-white/10 hover:text-white transition"
               >
-                <Tv size={16} /> Hazır Ücretsiz Listeler <ChevronDown size={14} className={`transition-transform ${showFreeLists ? 'rotate-180' : ''}`} />
+                <Tv size={16} />{' '}{t('Hazır Ücretsiz Listeler')}{' '}<ChevronDown size={14} className={`transition-transform ${showFreeLists ? 'rotate-180' : ''}`} />
               </button>
               
               {showFreeLists && (
@@ -127,7 +121,7 @@ export function HomePage(): ReactNode {
                           setShowFreeLists(false);
                           await lists.add({ kind: 'url', name: item.name, url: item.url });
                         }}
-                        className="block w-full px-4 py-2.5 text-left text-sm text-white/70 hover:bg-white/10 hover:text-white transition"
+                        className="block w-full px-4 py-2.5 text-start text-sm text-white/70 hover:bg-white/10 hover:text-white transition"
                       >
                         {item.name}
                       </button>
@@ -147,12 +141,12 @@ export function HomePage(): ReactNode {
   return (
     <div className="space-y-8">
       {featured && <Hero channel={featured} />}
-      <Row title="Favorilerin" items={favs} />
-      <Row title="Canlı TV" items={visible.live.slice(0, 24)} href="live" />
-      <Row title="Filmler" items={visible.movie.slice(0, 24)} href="movies" />
-      <Row title="Diziler" items={visible.series.slice(0, 24)} href="series" />
+      <Row title={t('Favorilerin')} items={favs} />
+      <Row title={t('Canlı TV')} items={visible.live.slice(0, 24)} href="live" />
+      <Row title={t('Filmler')} items={visible.movie.slice(0, 24)} href="movies" />
+      <Row title={t('Diziler')} items={visible.series.slice(0, 24)} href="series" />
       {parts.live.length + parts.movie.length + parts.series.length > 0 && visible.live.length + visible.movie.length + visible.series.length === 0 && (
-        <p className="rounded-2xl border border-dashed border-white/15 p-8 text-center text-sm text-[var(--subtle)]">Tüm kategoriler gizli. Ayarlar sayfasındaki Kategori Yönetimi bölümünden göster.</p>
+        <p className="rounded-2xl border border-dashed border-white/15 p-8 text-center text-sm text-[var(--subtle)]">{t('Tüm kategoriler gizli. Ayarlar sayfasındaki Kategori Yönetimi bölümünden göster.')}</p>
       )}
     </div>
   )

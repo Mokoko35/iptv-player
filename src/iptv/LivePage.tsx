@@ -12,6 +12,7 @@ import { FAVORITES } from './kinds'
 import type { Channel } from './types'
 import { useCategoryBrowse } from './useCategoryBrowse'
 import { useMedia } from './useMedia'
+import { t, locale } from './i18n'
 
 /**
  * Live TV in four columns: the main menu, the categories, the channels of the picked category,
@@ -30,17 +31,16 @@ export function LivePage() {
       {showRail && <CategorySidebar {...rail} />}
 
       {/* Column 3: channels */}
-      <section aria-label="Kanallar" className="min-w-0 lg:flex lg:h-dvh lg:w-[22rem] lg:flex-none lg:flex-col lg:border-r lg:border-white/10 xl:w-[25rem]">
+      <section aria-label={t('Kanallar')} className="min-w-0 lg:flex lg:h-dvh lg:w-[22rem] lg:flex-none lg:flex-col lg:border-r lg:border-white/10 xl:w-[25rem]">
         <header className="shrink-0 pb-3 lg:px-4 lg:pb-3 lg:pt-5">
           <Breadcrumb kind="live" selected={selected} small />
           <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm tabular-nums text-[var(--subtle)]">
-            {items.length.toLocaleString('tr-TR')} kanal
-            {activeCountries.length > 0 && (
-              <button type="button" onClick={() => setCountries([])} aria-label="Ülke filtresini temizle" className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 text-xs text-accent">
+            {items.length.toLocaleString(locale())}{' '}{t('kanal')}{activeCountries.length > 0 && (
+              <button type="button" onClick={() => setCountries([])} aria-label={t('Ülke filtresini temizle')} className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 text-xs text-accent">
                 <span className="flag" aria-hidden="true">
                   {activeCountries.slice(0, 4).map(flagOf).join(' ')}
                 </span>
-                {activeCountries.length > 4 ? `${activeCountries.length} ülke` : activeCountries.join(' ')}
+                {activeCountries.length > 4 ? t('{length} ülke', { length: activeCountries.length }) : activeCountries.join(' ')}
                 <X size={12} aria-hidden="true" />
               </button>
             )}
@@ -48,9 +48,9 @@ export function LivePage() {
           {hasAny && (
             <div className="relative mt-3">
               <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--subtle)]" aria-hidden="true" />
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Kanal ara" aria-label="Kanal ara" className="field !pl-9 !pr-9" />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('Kanal ara')} aria-label={t('Kanal ara')} className="field !pl-9 !pr-9" />
               {query && (
-                <button type="button" onClick={() => setQuery('')} aria-label="Aramayı temizle" className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-[var(--subtle)] hover:text-[var(--ink)]">
+                <button type="button" onClick={() => setQuery('')} aria-label={t('Aramayı temizle')} className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center text-[var(--subtle)] hover:text-[var(--ink)]">
                   <X size={15} />
                 </button>
               )}
@@ -70,20 +70,16 @@ export function LivePage() {
           {lists.starting ? (
             <SkeletonRows />
           ) : lists.playlists.length === 0 ? (
-            <Empty icon="add">M3U adresi, portal girişi veya dosyayla ilk listeni ekle.</Empty>
+            <Empty icon="add">{t('M3U adresi, portal girişi veya dosyayla ilk listeni ekle.')}</Empty>
           ) : !hasAny ? (
-            <Empty icon="none">{activeCountries.length > 0 ? 'Seçili ülkelerde canlı kanal yok.' : 'Bu listede canlı kanal bulunamadı.'}</Empty>
+            <Empty icon="none">{activeCountries.length > 0 ? t('Seçili ülkelerde canlı kanal yok.') : t('Bu listede canlı kanal bulunamadı.')}</Empty>
           ) : base.length === 0 ? (
-            <Empty icon="manage">
-              Tüm canlı TV kategorileri gizli.
-              <div className="mt-4">
-                <button type="button" onClick={() => openManage('live')} className="btn-primary">
-                  Kategorileri yönet
-                </button>
+            <Empty icon="manage">{t('Tüm canlı TV kategorileri gizli.')}<div className="mt-4">
+                <button type="button" onClick={() => openManage('live')} className="btn-primary">{t('Kategorileri yönet')}</button>
               </div>
             </Empty>
           ) : items.length === 0 ? (
-            <Empty icon="none">{selected === FAVORITES && deferred.trim() === '' ? 'Bu bölümde henüz favorin yok. Kanalın yanındaki kalbe dokunarak favori ekleyebilirsin.' : 'Eşleşen kanal yok.'}</Empty>
+            <Empty icon="none">{selected === FAVORITES && deferred.trim() === '' ? t('Bu bölümde henüz favorin yok. Kanalın yanındaki kalbe dokunarak favori ekleyebilirsin.') : t('Eşleşen kanal yok.')}</Empty>
           ) : (
             <ProgressiveGrid
               key={`${selected}|${deferred}`}

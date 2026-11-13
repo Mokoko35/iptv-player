@@ -24,6 +24,94 @@ index 11abed1..65becc2 100644
        <Splash />
      </div>
    )
+diff --git a/src/index.css b/src/index.css
+index e779c38..b6df37e 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -55,9 +55,52 @@ html[data-theme='forest'] {
+   --scroll-thumb-hover: rgba(52, 211, 153, 0.65);
+ }
+ 
++/* Elegant themes: a restrained palette each, serif headings in two of them, and a faint glow in the corners. */
++html[data-theme='gold'] {
++  --bg-rgb: 12 11 9;
++  --nav-rgb: 8 7 6;
++  --rail-rgb: 17 15 12;
++  --elev-rgb: 27 24 19;
++  --accent-rgb: 214 178 94;
++  --accent-hover: #e8cc8a;
++  --accent-ink: #1c1405;
++  --scroll-thumb: rgba(214, 178, 94, 0.22);
++  --scroll-thumb-hover: rgba(232, 204, 138, 0.7);
++  --display-font: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
++  --display-tracking: 0;
++}
++
++html[data-theme='rose'] {
++  --bg-rgb: 20 11 15;
++  --nav-rgb: 14 7 10;
++  --rail-rgb: 27 14 20;
++  --elev-rgb: 40 20 29;
++  --accent-rgb: 236 154 143;
++  --accent-hover: #f5b8ad;
++  --accent-ink: #2b0d0a;
++  --scroll-thumb: rgba(236, 154, 143, 0.22);
++  --scroll-thumb-hover: rgba(245, 184, 173, 0.7);
++  --display-font: 'Playfair Display', Georgia, serif;
++  --display-tracking: 0;
++}
++
++html[data-theme='amethyst'] {
++  --bg-rgb: 14 11 26;
++  --nav-rgb: 10 8 19;
++  --rail-rgb: 20 16 38;
++  --elev-rgb: 32 26 58;
++  --accent-rgb: 176 148 255;
++  --accent-hover: #c9b5ff;
++  --accent-ink: #150b33;
++  --scroll-thumb: rgba(176, 148, 255, 0.24);
++  --scroll-thumb-hover: rgba(201, 181, 255, 0.7);
++}
++
+ html {
+   color-scheme: dark;
+   --bg: rgb(var(--bg-rgb));
++  --display-font: 'Space Grotesk', sans-serif;
++  --display-tracking: -0.03em;
+   --accent: rgb(var(--accent-rgb));
+   --danger-rgb: 232 109 122;
+   --danger: rgb(var(--danger-rgb));
+@@ -119,8 +162,8 @@ body {
+ }
+ 
+ .display {
+-  font-family: 'Space Grotesk', sans-serif;
+-  letter-spacing: -0.03em;
++  font-family: var(--display-font);
++  letter-spacing: var(--display-tracking);
+ }
+ 
+ .mono {
+@@ -417,3 +460,19 @@ html[data-host] .blur-2xl,
+ html[data-host] .blur-3xl {
+   display: none !important;
+ }
++
++/* A faint glow in two corners for the elegant themes (not over the video in the desktop app, which is transparent). */
++html[data-theme='gold']:not([data-host]) .theme-media,
++html[data-theme='rose']:not([data-host]) .theme-media,
++html[data-theme='amethyst']:not([data-host]) .theme-media {
++  background:
++    radial-gradient(900px 520px at 88% -6%, rgb(var(--accent-rgb) / 0.1), transparent 62%),
++    radial-gradient(760px 500px at -6% 104%, rgb(var(--accent-rgb) / 0.06), transparent 60%),
++    var(--bg);
++  background-attachment: fixed;
++}
++
++::selection {
++  background: rgb(var(--accent-rgb) / 0.35);
++  color: #fff;
++}
 diff --git a/src/iptv/DetailDialog.tsx b/src/iptv/DetailDialog.tsx
 index e935b2a..33ad94d 100644
 --- a/src/iptv/DetailDialog.tsx
@@ -1149,6 +1237,27 @@ index 6a7652c..0485fd9 100644
  
  export interface Route {
    page: Page
+diff --git a/src/iptv/themes.ts b/src/iptv/themes.ts
+index 76fcc4b..fe6ef5d 100644
+--- a/src/iptv/themes.ts
++++ b/src/iptv/themes.ts
+@@ -1,5 +1,5 @@
+ /** Color presets. The actual values live in src/index.css under html[data-theme='...']. */
+-export type ThemeId = 'default' | 'neon' | 'navy' | 'forest'
++export type ThemeId = 'default' | 'neon' | 'navy' | 'forest' | 'gold' | 'rose' | 'amethyst'
+ 
+ export interface Theme {
+   id: ThemeId
+@@ -14,6 +14,9 @@ export const THEMES: Theme[] = [
+   { id: 'neon', name: 'Neon', description: 'Koyu mor zemin, parlak pembe vurgu', preview: { bg: '#090516', nav: '#06030f', elev: '#160e30', accent: '#ff2bd6' } },
+   { id: 'navy', name: 'Lacivert', description: 'Derin lacivert zemin, mavi vurgu', preview: { bg: '#0a1226', nav: '#070d1c', elev: '#131f3e', accent: '#4da3ff' } },
+   { id: 'forest', name: 'Orman', description: 'Koyu yeşil zemin, zümrüt vurgu', preview: { bg: '#09100d', nav: '#060c0a', elev: '#121e18', accent: '#34d399' } },
++  { id: 'gold', name: 'Noir Altın', description: 'Sıcak siyah zemin, şampanya altını vurgu, serif başlıklar', preview: { bg: '#0c0b09', nav: '#080706', elev: '#1b1813', accent: '#d6b25e' } },
++  { id: 'rose', name: 'Gül Bordo', description: 'Koyu bordo zemin, gül altını vurgu, serif başlıklar', preview: { bg: '#140b0f', nav: '#0e070a', elev: '#28141d', accent: '#ec9a8f' } },
++  { id: 'amethyst', name: 'Ametist', description: 'Derin mor zemin, lavanta vurgu', preview: { bg: '#0e0b1a', nav: '#0a0813', elev: '#201a3a', accent: '#b094ff' } },
+ ]
+ 
+ export const DEFAULT_THEME: ThemeId = 'default'
 diff --git a/src/webview.d.ts b/src/webview.d.ts
 new file mode 100644
 index 0000000..35f892b

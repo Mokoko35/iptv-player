@@ -53,3 +53,14 @@ Ayrıntılı rapor: [`docs/ALTYAZI-RAPORU.md`](docs/ALTYAZI-RAPORU.md).
 ## Orta boy oynatıcı (pencere) kaydırması
 
 Oynatıcı penceresi ekrandan uzun olunca (küçük pencere) bütün pencere kayıyordu. Videoyu C# çizdiği için ve C# bir kaydırma alanına kırpılamadığı için video, metinle birlikte yukarı kayıp pencerenin dışına çıkıyordu. Artık video sabit; yalnızca altındaki bilgi paneli (program rehberi, düğmeler) kendi içinde kayıyor. Video genişliği, bilgi paneline yer kalsın diye yüksekliğe göre biraz daha erken küçülüyor.
+
+
+## Temalar (güncelleme)
+
+Ayarlar > Temalar'a üç yeni tema eklendi (toplam 7):
+
+- **Noir Altın:** sıcak siyah zemin, şampanya altını vurgu, serif (Playfair Display) başlıklar.
+- **Gül Bordo:** koyu bordo zemin, gül altını vurgu, serif başlıklar.
+- **Ametist:** derin mor zemin, lavanta vurgu.
+
+Üçünde de köşelerde çok hafif bir ışıma var (masaüstü uygulamasında sayfa şeffaf olduğu için ışıma kapalıdır, video etkilenmez). Değişen dosyalar: `src/index.css`, `src/iptv/themes.ts`, `index.html` (Playfair Display yazı tipi). Seçim önceki gibi kaydediliyor.

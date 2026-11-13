@@ -55,9 +55,52 @@ html[data-theme='forest'] {
   --scroll-thumb-hover: rgba(52, 211, 153, 0.65);
 }
 
+/* Elegant themes: a restrained palette each, serif headings in two of them, and a faint glow in the corners. */
+html[data-theme='gold'] {
+  --bg-rgb: 12 11 9;
+  --nav-rgb: 8 7 6;
+  --rail-rgb: 17 15 12;
+  --elev-rgb: 27 24 19;
+  --accent-rgb: 214 178 94;
+  --accent-hover: #e8cc8a;
+  --accent-ink: #1c1405;
+  --scroll-thumb: rgba(214, 178, 94, 0.22);
+  --scroll-thumb-hover: rgba(232, 204, 138, 0.7);
+  --display-font: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  --display-tracking: 0;
+}
+
+html[data-theme='rose'] {
+  --bg-rgb: 20 11 15;
+  --nav-rgb: 14 7 10;
+  --rail-rgb: 27 14 20;
+  --elev-rgb: 40 20 29;
+  --accent-rgb: 236 154 143;
+  --accent-hover: #f5b8ad;
+  --accent-ink: #2b0d0a;
+  --scroll-thumb: rgba(236, 154, 143, 0.22);
+  --scroll-thumb-hover: rgba(245, 184, 173, 0.7);
+  --display-font: 'Playfair Display', Georgia, serif;
+  --display-tracking: 0;
+}
+
+html[data-theme='amethyst'] {
+  --bg-rgb: 14 11 26;
+  --nav-rgb: 10 8 19;
+  --rail-rgb: 20 16 38;
+  --elev-rgb: 32 26 58;
+  --accent-rgb: 176 148 255;
+  --accent-hover: #c9b5ff;
+  --accent-ink: #150b33;
+  --scroll-thumb: rgba(176, 148, 255, 0.24);
+  --scroll-thumb-hover: rgba(201, 181, 255, 0.7);
+}
+
 html {
   color-scheme: dark;
   --bg: rgb(var(--bg-rgb));
+  --display-font: 'Space Grotesk', sans-serif;
+  --display-tracking: -0.03em;
   --accent: rgb(var(--accent-rgb));
   --danger-rgb: 232 109 122;
   --danger: rgb(var(--danger-rgb));
@@ -119,8 +162,8 @@ body {
 }
 
 .display {
-  font-family: 'Space Grotesk', sans-serif;
-  letter-spacing: -0.03em;
+  font-family: var(--display-font);
+  letter-spacing: var(--display-tracking);
 }
 
 .mono {
@@ -383,4 +426,20 @@ html[data-host] .theme-media {
 html[data-player-mode='modal'] #root,
 html[data-fullscreen] #root {
   visibility: hidden;
+}
+
+/* A faint glow in two corners for the elegant themes (not over the video in the desktop app, which is transparent). */
+html[data-theme='gold']:not([data-host]) .theme-media,
+html[data-theme='rose']:not([data-host]) .theme-media,
+html[data-theme='amethyst']:not([data-host]) .theme-media {
+  background:
+    radial-gradient(900px 520px at 88% -6%, rgb(var(--accent-rgb) / 0.1), transparent 62%),
+    radial-gradient(760px 500px at -6% 104%, rgb(var(--accent-rgb) / 0.06), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgb(var(--accent-rgb) / 0.35);
+  color: #fff;
 }
